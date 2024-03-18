@@ -13,7 +13,6 @@ public class TaskManager {
         subTasks = new HashMap<>();
     }
 
-    // Создание. Сам объект должен передаваться в качестве параметра
     public void addTask(Task t) {
         if (t.getStatus() == Status.NEW)
             tasks.put(t.getId(), t);
@@ -36,7 +35,6 @@ public class TaskManager {
         }
     }
 
-    // Получение списка всех задач
     public List<Task> getTasks() {
         return new ArrayList<>(tasks.values());
     }
@@ -49,7 +47,6 @@ public class TaskManager {
         return new ArrayList<>(subTasks.values());
     }
 
-    // Удаление всех задач по типам
     public void removeAllTasks() {
         tasks.clear();
     }
@@ -62,7 +59,6 @@ public class TaskManager {
         subTasks.clear();
     }
 
-    // Удаление по идентификатору
     public void removeTask(int id) {
         if (!tasks.isEmpty() && tasks.get(id) != null)
             tasks.remove(id);
@@ -102,7 +98,6 @@ public class TaskManager {
             System.out.println("Ошибка: подзадача с ID " + id + " не существует");
     }
 
-    // Получение по идентификатору
     public Task getTaskById(Integer id) {
         return tasks.get(id);
     }
@@ -115,7 +110,6 @@ public class TaskManager {
         return subTasks.get(id);
     }
 
-    // Обновление. Новая версия объекта с верным идентификатором передаётся в виде параметра.
     public void updateTask(Task updated) {
         tasks.put(updated.getId(), updated);
     }
@@ -143,9 +137,6 @@ public class TaskManager {
             System.out.println("Ошибка: эпик ещё не создан");
     }
 
-    /* Когда меняется статус любой подзадачи в эпике, вам необходимо проверить, что статус эпика изменится
-    соответствующим образом. При этом изменение статуса эпика может и не произойти, если в нём, к примеру,
-    всё ещё есть незакрытые задачи. */
     public void updateSubTask(SubTask updated) {
         int updatedId = updated.getId();
         if (subTasks.containsKey(updatedId)) {
@@ -155,7 +146,6 @@ public class TaskManager {
             System.out.println("Ошибка: подзадача ещё не создана");
     }
 
-    // Получение списка всех подзадач определённого эпика
     public List<SubTask> getSubTasksForEpic(Epic e) {
         List<SubTask> result = new ArrayList<>();
         for (int stId : e.getSubTaskIds()) {

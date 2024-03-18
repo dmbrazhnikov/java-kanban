@@ -2,10 +2,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Task {
 
-    final int id;
-    String name, description;
-    Status status;
-    static final AtomicInteger idSeq = new AtomicInteger();
+    protected final int id;
+    protected String name, description;
+    protected Status status;
+    protected static final AtomicInteger idSeq = new AtomicInteger();
 
     public Task(String name) {
         this.id = idSeq.getAndIncrement();
