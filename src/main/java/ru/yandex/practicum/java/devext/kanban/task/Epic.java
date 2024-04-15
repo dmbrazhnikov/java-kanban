@@ -1,8 +1,12 @@
-import java.util.Arrays;
+package ru.yandex.practicum.java.devext.kanban.task;
+
+import lombok.Getter;
+
 import java.util.HashSet;
 import java.util.Set;
 
 
+@Getter
 public class Epic extends Task {
 
     private final Set<Integer> subTaskIds;
@@ -12,16 +16,12 @@ public class Epic extends Task {
         subTaskIds = new HashSet<>();
     }
 
-    void bindSubTask(SubTask subTask) {
+    public void bindSubTask(SubTask subTask) {
         subTaskIds.add(subTask.getId());
     }
 
-    void unbindSubTask(SubTask subTask) {
+    public void unbindSubTask(SubTask subTask) {
         subTaskIds.remove(subTask.getId());
-    }
-
-    public Set<Integer> getSubTaskIds() {
-        return subTaskIds;
     }
 
     @Override

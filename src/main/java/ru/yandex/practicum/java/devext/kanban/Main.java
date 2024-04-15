@@ -1,9 +1,14 @@
+package ru.yandex.practicum.java.devext.kanban;
+
+import ru.yandex.practicum.java.devext.kanban.task.*;
+import static ru.yandex.practicum.java.devext.kanban.task.Status.*;
+
 public class Main {
 
     public static void main(String[] args) {
 
         System.out.println("Поехали!");
-        TaskManager tm = new TaskManager();
+        TaskManager tm = new InMemoryTaskManager();
 
         /*=== Задачи ===*/
 
@@ -15,9 +20,9 @@ public class Main {
         System.out.println(tm.getTasks());
 
         System.out.println("\nМеняем статус задач:");
-        t1.setStatus(Status.DONE);
+        t1.setStatus(DONE);
         tm.updateTask(t1);
-        t2.setStatus(Status.IN_PROGRESS);
+        t2.setStatus(IN_PROGRESS);
         tm.updateTask(t2);
         System.out.println(tm.getTasks());
 
@@ -41,19 +46,19 @@ public class Main {
         System.out.println(tm.getSubTasks());
 
         System.out.println("\nМеняем статус Подзадачи 3 (Эпик 2): Новая -> В работе");
-        st3.setStatus(Status.IN_PROGRESS);
+        st3.setStatus(IN_PROGRESS);
         tm.updateSubTask(st3);
         System.out.println(tm.getEpics());
         System.out.println(tm.getSubTasks());
 
         System.out.println("\nМеняем статус Подзадачи 3 (Эпик 2): В работе -> Завершена");
-        st3.setStatus(Status.DONE);
+        st3.setStatus(DONE);
         tm.updateSubTask(st3);
         System.out.println(tm.getEpics());
         System.out.println(tm.getSubTasks());
 
         System.out.println("\nМеняем статус Подзадачи 2 (Эпик 2): Новая -> В работе");
-        st2.setStatus(Status.IN_PROGRESS);
+        st2.setStatus(IN_PROGRESS);
         tm.updateSubTask(st2);
         System.out.println(tm.getEpics());
         System.out.println(tm.getSubTasks());

@@ -1,9 +1,18 @@
+package ru.yandex.practicum.java.devext.kanban.task;
+
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
+
+@Getter
 public class Task {
 
     protected final int id;
+    @Setter
     protected String name, description;
+    @Setter
     protected Status status;
     protected static final AtomicInteger idSeq = new AtomicInteger();
 
@@ -11,30 +20,6 @@ public class Task {
         this.id = idSeq.getAndIncrement();
         this.name = name;
         status = Status.NEW;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     @Override

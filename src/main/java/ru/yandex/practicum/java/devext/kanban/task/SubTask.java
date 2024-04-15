@@ -1,17 +1,17 @@
+package ru.yandex.practicum.java.devext.kanban.task;
+
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class SubTask extends Task {
 
     private int epicId;
 
     public SubTask(String name) {
         super(name);
-    }
-
-    public int getEpicId() {
-        return epicId;
-    }
-
-    public void setEpicId(int epicId) {
-        this.epicId = epicId;
     }
 
     @Override
