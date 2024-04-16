@@ -2,6 +2,8 @@ package ru.yandex.practicum.java.devext.kanban.history;
 
 import lombok.Getter;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,6 +30,6 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public List<Task> getHistory() {
-        return items;
+        return new ArrayList<>(items);
     }
 }
