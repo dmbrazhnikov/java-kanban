@@ -1,8 +1,11 @@
 package ru.yandex.practicum.java.devext.kanban.history;
 
+import jdk.jfr.Description;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import ru.yandex.practicum.java.devext.kanban.Managers;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
@@ -20,24 +23,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class InMemoryHistoryManagerTest {
 
     private HistoryManager historyManager;
-    private List<Task> tasks;
-    private int tasksToViewLimit;
+    private List<Task> refTasks;
 
     @BeforeEach
     void beforeEach() {
-        tasks = new LinkedList<>();
         historyManager = Managers.getDefaultHistory();
-        tasksToViewLimit = historyManager.getCapacity() + 1;
-        for (int i = 1; i <= tasksToViewLimit; i++) {
-            Task t;
-            if (i % 2 == 0)
-                t = new SubTask("Test subtask " + i);
-            else if (i % 3 == 0)
-                t = new Epic("Test epic " + i);
-            else
-                t = new Task("Test task " + i);
-            tasks.add(t);
-        }
     }
 
     @Test
@@ -47,19 +37,54 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    @DisplayName("Добавление в историю просмотра")
-    void add() {
-        Task randViewed = tasks.get(ThreadLocalRandom.current().nextInt(0, tasksToViewLimit));
-        historyManager.add(randViewed);
-        assertTrue(historyManager.getHistory().contains(randViewed));
+    @DisplayName("Первичное добавление")
+    @Description("Первичное добавление задачи в пустую историю просмотра")
+    void addFirst() {
+        Task t = new Task("Initial test task ");
+        historyManager.add(t);
+        assertTrue(historyManager.getHistory().contains(t));
+    }
+
+    @ParameterizedTest
+    @DisplayName("Повторное добавление")
+    @Description("Повторное добавление просмотренной ранее задачи в непустую историю просмотра")
+    @ValueSource(ints = {21, 10_000_000})
+    void addAlreadyViewed(int tasksQuantity) {
+        // Подготовка
+        refTasks = getTestTasks(tasksQuantity);
+        refTasks.forEach(historyManager::add);
+        Task randomTask = refTasks.get(ThreadLocalRandom.current().nextInt(0, refTasks.size()));
+        // Выполнение
+        long startTime = System.nanoTime();
+        historyManager.add(randomTask);
+        long stopTime = System.nanoTime();
+        System.out.println("Execution time for " + tasksQuantity + " task(s): " + (stopTime - startTime) + " nanoseconds");
+        // Проверка
+        assertTrue(historyManager.getHistory().contains(randomTask));
     }
 
     @Test
-    @DisplayName("История просмотра")
+    @DisplayName("Корректность длины и порядка")
+    @Description("Проверка равенства количества элементов и их порядка в истории просмотра")
     void getHistory() {
-        tasks.forEach(t -> historyManager.add(t));
+        refTasks = getTestTasks(21);
+        refTasks.forEach(t -> historyManager.add(t));
         List<Task> actualHistory = historyManager.getHistory();
-        tasks.removeFirst();
-        assertThat(actualHistory, containsInRelativeOrder(tasks.toArray()));
+        assertThat(actualHistory, containsInRelativeOrder(refTasks.toArray()));
+    }
+
+    private List<Task> getTestTasks(int tasksQuantity) {
+        List<Task> tasks = new LinkedList<>();
+        for (int i = 1; i <= tasksQuantity; i++) {
+            Task t;
+            if (i % 2 == 0)
+                t = new SubTask("Test subtask " + i);
+            else if (i % 3 == 0)
+                t = new Epic("Test epic " + i);
+            else
+                t = new Task("Test task " + i);
+            tasks.add(t);
+        }
+        return tasks;
     }
 }

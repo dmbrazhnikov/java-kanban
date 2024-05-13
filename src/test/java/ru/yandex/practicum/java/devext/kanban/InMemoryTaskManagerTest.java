@@ -1,12 +1,15 @@
 package ru.yandex.practicum.java.devext.kanban;
 
 import org.junit.jupiter.api.*;
+import ru.yandex.practicum.java.devext.kanban.task.Status;
+import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
+import ru.yandex.practicum.java.devext.kanban.task.management.InMemoryTaskManager;
+
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("Менеджер задач in-memory")
 class InMemoryTaskManagerTest {
@@ -37,16 +40,14 @@ class InMemoryTaskManagerTest {
             task = new Task("Test task");
             epic = new Epic("Test epic");
             subTask = new SubTask("Test subtask");
+            taskManager.addTask(task);
+            taskManager.addEpic(epic);
+            taskManager.addSubTask(subTask, epic);
         }
 
         @Nested
         @DisplayName("Простая задача")
         class SimpleTaskTest {
-
-            @BeforeEach
-            void beforeEach() {
-                taskManager.addTask(task);
-            }
 
             @Test
             @DisplayName("Добавление и получение")
@@ -66,7 +67,11 @@ class InMemoryTaskManagerTest {
             @DisplayName("Удаление")
             void removeTask() {
                 taskManager.removeTask(task.getId());
-                assertNull(taskManager.getTaskById(task.getId()));
+                assertAll(
+                        () -> assertNull(taskManager.getTaskById(task.getId())),
+                        () -> assertEquals(1, taskManager.getEpics().size()),
+                        () -> assertEquals(1, taskManager.getSubTasks().size())
+                );
             }
         }
 
@@ -74,13 +79,8 @@ class InMemoryTaskManagerTest {
         @DisplayName("Эпик")
         class EpicTest {
 
-            @BeforeEach
-            void beforeEach() {
-                taskManager.addEpic(epic);
-            }
-
             @Test
-            @DisplayName("Добавление и получение")
+            @DisplayName("Получение")
             void getEpicById() {
                 assertEquals(epic, taskManager.getEpicById(epic.getId()));
             }
@@ -96,8 +96,13 @@ class InMemoryTaskManagerTest {
             @Test
             @DisplayName("Удаление")
             void removeEpic() {
+                subTask.setStatus(Status.DONE);
                 taskManager.removeEpic(epic.getId());
-                assertNull(taskManager.getEpicById(epic.getId()));
+                assertAll(
+                        () -> assertNull(taskManager.getEpicById(epic.getId())),
+                        () -> assertEquals(1, taskManager.getTasks().size()),
+                        () -> assertEquals(1, taskManager.getSubTasks().size())
+                );
             }
         }
 
@@ -105,14 +110,8 @@ class InMemoryTaskManagerTest {
         @DisplayName("Подзадача")
         class SubTaskTest {
 
-            @BeforeEach
-            void beforeEach() {
-                taskManager.addEpic(epic);
-                taskManager.addSubTask(subTask, epic);
-            }
-
             @Test
-            @DisplayName("Добавление и получение")
+            @DisplayName("Получение")
             void getSubTaskById() {
                 SubTask actualSubTask = taskManager.getSubTaskById(subTask.getId());
                 assertAll(
@@ -133,7 +132,11 @@ class InMemoryTaskManagerTest {
             @DisplayName("Удаление")
             void removeSubTask() {
                 taskManager.removeSubTask(subTask.getId());
-                assertNull(taskManager.getSubTaskById(subTask.getId()));
+                assertAll(
+                        () -> assertNull(taskManager.getSubTaskById(subTask.getId())),
+                        () -> assertEquals(1, taskManager.getTasks().size()),
+                        () -> assertEquals(1, taskManager.getEpics().size())
+                );
             }
         }
     }

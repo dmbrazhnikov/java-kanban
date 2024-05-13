@@ -1,6 +1,9 @@
 package ru.yandex.practicum.java.devext.kanban;
 
+import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
 import ru.yandex.practicum.java.devext.kanban.task.*;
+import ru.yandex.practicum.java.devext.kanban.task.management.InMemoryTaskManager;
+
 import static ru.yandex.practicum.java.devext.kanban.task.Status.*;
 
 public class Main {
