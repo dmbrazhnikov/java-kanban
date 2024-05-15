@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
+import ru.yandex.practicum.java.devext.kanban.task.Status;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
@@ -11,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -44,8 +46,7 @@ public class InMemoryTaskManagerIntegrationTest {
         }
         for (int i = 0; i < refTasks.size(); i++) {
             Task randomTask = refTasks.get(ThreadLocalRandom.current().nextInt(0, refTasks.size()));
-            if (refHistory.contains(randomTask))
-                refHistory.remove(randomTask);
+            refHistory.remove(randomTask);
             refHistory.addLast(randomTask);
             int randomTaskId = randomTask.getId();
             if (randomTask instanceof Epic)
@@ -65,5 +66,16 @@ public class InMemoryTaskManagerIntegrationTest {
                 () -> assertEquals(refHistory.size(), actualHistory.size()),
                 () -> assertEquals(refHistory, actualHistory)
         );
+    }
+
+    @Test
+    @DisplayName("Удаление из истории при удалении задачи")
+    void removeFromHistory() {
+        Task t = new Task("Test task");
+        taskManager.addTask(t);
+        taskManager.getTaskById(t.getId());
+        taskManager.removeTask(t.getId());
+        List<Task> actualHistory = taskManager.getHistory();
+        assertFalse(actualHistory.contains(t));
     }
 }
