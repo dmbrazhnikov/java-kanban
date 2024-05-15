@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
-import ru.yandex.practicum.java.devext.kanban.task.Status;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
@@ -12,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 
