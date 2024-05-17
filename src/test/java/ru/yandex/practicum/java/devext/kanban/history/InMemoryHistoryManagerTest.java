@@ -10,6 +10,7 @@ import ru.yandex.practicum.java.devext.kanban.Managers;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
+import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -24,10 +25,12 @@ class InMemoryHistoryManagerTest {
 
     private HistoryManager historyManager;
     private List<Task> refTasks;
+    private TaskManager taskManager;
 
     @BeforeEach
     void beforeEach() {
         historyManager = Managers.getDefaultHistory();
+        taskManager = Managers.getDefault();
     }
 
     @Test
@@ -40,7 +43,7 @@ class InMemoryHistoryManagerTest {
     @DisplayName("Первичное добавление")
     @Description("Первичное добавление задачи в пустую историю просмотра")
     void addFirst() {
-        Task t = new Task("Initial test task ");
+        Task t = new Task(taskManager.getNextId(), "Initial test task ");
         historyManager.add(t);
         assertTrue(historyManager.getHistory().contains(t));
     }
@@ -78,11 +81,11 @@ class InMemoryHistoryManagerTest {
         for (int i = 1; i <= tasksQuantity; i++) {
             Task t;
             if (i % 2 == 0)
-                t = new SubTask("Test subtask " + i);
+                t = new SubTask(taskManager.getNextId(), "Test subtask " + i);
             else if (i % 3 == 0)
-                t = new Epic("Test epic " + i);
+                t = new Epic(taskManager.getNextId(), "Test epic " + i);
             else
-                t = new Task("Test task " + i);
+                t = new Task(taskManager.getNextId(), "Test task " + i);
             tasks.add(t);
         }
         return tasks;

@@ -10,8 +10,8 @@ public class SubTask extends Task {
 
     private int epicId;
 
-    public SubTask(String name) {
-        super(name);
+    public SubTask(int id, String name) {
+        super(id, name);
     }
 
     @Override

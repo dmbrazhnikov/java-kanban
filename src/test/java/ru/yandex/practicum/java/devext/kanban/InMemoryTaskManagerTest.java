@@ -37,9 +37,9 @@ class InMemoryTaskManagerTest {
 
         @BeforeEach
         void beforeEach() {
-            task = new Task("Test task");
-            epic = new Epic("Test epic");
-            subTask = new SubTask("Test subtask");
+            task = new Task(taskManager.getNextId(), "Test task");
+            epic = new Epic(taskManager.getNextId(), "Test epic");
+            subTask = new SubTask(taskManager.getNextId(), "Test subtask");
             taskManager.addTask(task);
             taskManager.addEpic(epic);
             taskManager.addSubTask(subTask, epic);
@@ -153,9 +153,9 @@ class InMemoryTaskManagerTest {
         void beforeEach() {
             refSubTaskIds = new HashSet<>();
             refSubTasks = new ArrayList<>();
-            epic = new Epic("Test epic");
+            epic = new Epic(taskManager.getNextId(), "Test epic");
             for (int i = 0; i < 3; i++) {
-                SubTask st = new SubTask("Test subtask " + (i + 1));
+                SubTask st = new SubTask(taskManager.getNextId(), "Test subtask " + (i + 1));
                 refSubTaskIds.add(st.getId());
                 refSubTasks.add(st);
                 taskManager.addSubTask(st, epic);
@@ -214,7 +214,7 @@ class InMemoryTaskManagerTest {
             void beforeEach() {
                 refTasks = new ArrayList<>();
                 for (int i = 0; i < 3; i++) {
-                    Task t = new Task("Test task " + (i + 1));
+                    Task t = new Task(taskManager.getNextId(), "Test task " + (i + 1));
                     refTasks.add(t);
                     taskManager.addTask(t);
                 }
@@ -246,7 +246,7 @@ class InMemoryTaskManagerTest {
             void beforeEach() {
                 refEpics = new ArrayList<>();
                 for (int i = 0; i < 3; i++) {
-                    Epic e = new Epic("Test epic " + (i + 1));
+                    Epic e = new Epic(taskManager.getNextId(), "Test epic " + (i + 1));
                     refEpics.add(e);
                     taskManager.addEpic(e);
                 }
@@ -279,11 +279,11 @@ class InMemoryTaskManagerTest {
                 refEpics = new ArrayList<>();
                 refSubTasks = new ArrayList<>();
                 for (int i = 0; i < 3; i++) {
-                    Epic e = new Epic("Test epic " + (i + 1));
+                    Epic e = new Epic(taskManager.getNextId(), "Test epic " + (i + 1));
                     refEpics.add(e);
                     taskManager.addEpic(e);
                     for (int j = 0; j < 3; j++) {
-                        SubTask st = new SubTask("Subtask " + i + j);
+                        SubTask st = new SubTask(taskManager.getNextId(), "Subtask " + i + j);
                         refSubTasks.add(st);
                         taskManager.addSubTask(st, e);
                     }

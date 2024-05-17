@@ -28,16 +28,16 @@ public class InMemoryTaskManagerIntegrationTest {
         refHistory = new LinkedList<>();
         // Подготавливаем 3 простые задачи, 3 эпика и по 3 подзадачи на эпик, итого 12 задач.
         for (int i = 0; i < 3; i++) {
-            Task t = new Task("Test task " + (i + 1));
+            Task t = new Task(taskManager.getNextId(), "Test task " + (i + 1));
             refTasks.add(t);
             taskManager.addTask(t);
         }
         for (int i = 0; i < 3; i++) {
-            Epic e = new Epic("Test epic " + (i + 1));
+            Epic e = new Epic(taskManager.getNextId(), "Test epic " + (i + 1));
             refTasks.add(e);
             taskManager.addEpic(e);
             for (int j = 0; j < 3; j++) {
-                SubTask st = new SubTask("Subtask " + i + j);
+                SubTask st = new SubTask(taskManager.getNextId(), "Subtask " + i + j);
                 refTasks.add(st);
                 taskManager.addSubTask(st, e);
             }
@@ -69,7 +69,7 @@ public class InMemoryTaskManagerIntegrationTest {
     @Test
     @DisplayName("Удаление из истории при удалении задачи")
     void removeFromHistory() {
-        Task t = new Task("Test task");
+        Task t = new Task(taskManager.getNextId(), "Test task");
         taskManager.addTask(t);
         taskManager.getTaskById(t.getId());
         taskManager.removeTask(t.getId());

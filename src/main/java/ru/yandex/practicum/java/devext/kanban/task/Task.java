@@ -3,9 +3,7 @@ package ru.yandex.practicum.java.devext.kanban.task;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 @Getter
@@ -13,14 +11,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Task {
 
     protected final int id;
-    protected static final AtomicInteger idSeq = new AtomicInteger();
     @Setter
     protected String name, description;
     @Setter
     protected Status status;
 
-    public Task(String name) {
-        this.id = idSeq.getAndIncrement();
+    public Task(int id, String name) {
+        this.id = id;
         this.name = name;
         status = Status.NEW;
     }

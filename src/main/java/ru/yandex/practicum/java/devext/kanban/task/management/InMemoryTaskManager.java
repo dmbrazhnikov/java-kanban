@@ -7,6 +7,8 @@ import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static ru.yandex.practicum.java.devext.kanban.Managers.getDefaultHistory;
 
 
@@ -16,12 +18,14 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Epic> epics;
     private final Map<Integer, SubTask> subTasks;
     private final HistoryManager historyManager;
+    private final AtomicInteger idSeq;
 
     public InMemoryTaskManager() {
         tasks = new ConcurrentHashMap<>();
         epics = new ConcurrentHashMap<>();
         subTasks = new ConcurrentHashMap<>();
         historyManager = getDefaultHistory();
+        idSeq = new AtomicInteger();
     }
 
     @Override
@@ -207,5 +211,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
+    }
+
+    @Override
+    public int getNextId() {
+        return idSeq.getAndIncrement();
     }
 }
