@@ -1,6 +1,9 @@
 package ru.yandex.practicum.java.devext.kanban;
 
+import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
 import ru.yandex.practicum.java.devext.kanban.task.*;
+import ru.yandex.practicum.java.devext.kanban.task.management.InMemoryTaskManager;
+
 import static ru.yandex.practicum.java.devext.kanban.task.Status.*;
 
 public class Main {
@@ -13,9 +16,9 @@ public class Main {
         /*=== Задачи ===*/
 
         System.out.println("\nДобавляем задачи:");
-        Task t1 = new Task("Задача 1");
+        Task t1 = new Task(tm.getNextId(),"Задача 1");
         tm.addTask(t1);
-        Task t2 = new Task("Задача 2");
+        Task t2 = new Task(tm.getNextId(),"Задача 2");
         tm.addTask(t2);
         System.out.println(tm.getTasks());
 
@@ -33,14 +36,14 @@ public class Main {
         /*=== Эпики и подзадачи ===*/
 
         System.out.println("\nСоздаём два эпика и добавляем в них подзадачи:");
-        Epic e1 = new Epic("Эпик 1");
+        Epic e1 = new Epic(tm.getNextId(),"Эпик 1");
         tm.addEpic(e1);
-        SubTask st1 = new SubTask("Подзадача 1");
+        SubTask st1 = new SubTask(tm.getNextId(),"Подзадача 1");
         tm.addSubTask(st1, e1);
-        Epic e2 = new Epic("Эпик 2");
-        SubTask st2 = new SubTask("Подзадача 2");
+        Epic e2 = new Epic(tm.getNextId(),"Эпик 2");
+        SubTask st2 = new SubTask(tm.getNextId(),"Подзадача 2");
         tm.addSubTask(st2, e2);
-        SubTask st3 = new SubTask("Подзадача 3");
+        SubTask st3 = new SubTask(tm.getNextId(),"Подзадача 3");
         tm.addSubTask(st3, e2);
         System.out.println(tm.getEpics());
         System.out.println(tm.getSubTasks());
