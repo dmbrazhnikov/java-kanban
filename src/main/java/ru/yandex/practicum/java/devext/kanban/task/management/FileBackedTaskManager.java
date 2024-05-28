@@ -1,18 +1,28 @@
 package ru.yandex.practicum.java.devext.kanban.task.management;
 
+import com.opencsv.CSVWriterBuilder;
+import com.opencsv.ICSVWriter;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private final Path backupFilePath;
+    private static final String[] CSV_BACKUP_HEADER = {"id", "type", "name", "status", "description", "epic"};
 
-    public FileBackedTaskManager(Path backupFilePath) {
+    public FileBackedTaskManager() {
         super();
-        this.backupFilePath = backupFilePath;
+        backupFilePath = Paths.get(System.getProperty("backup.file.pathname"));
     }
 
     @Override
@@ -88,6 +98,42 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private void save() {
-        // TODO Реализация
+        List<String[]> records = new ArrayList<>();
+        tasks.forEach((id, task) -> records.add(toCsvRecord(task)));
+        epics.forEach((id, epic) -> records.add(toCsvRecord(epic)));
+        subTasks.forEach((id, subTask) -> records.add(toCsvRecord(subTask)));
+        try {
+            Files.deleteIfExists(backupFilePath);
+            // Path newBackupPath = Files.createFile(backupFilePath); //FIXME Удалить, если не нужно
+            try (ICSVWriter writer = new CSVWriterBuilder(new FileWriter(backupFilePath.toFile())).withSeparator(',').build()) {
+                writer.writeNext(CSV_BACKUP_HEADER);
+                writer.writeAll(records);
+            } catch (IOException e) {
+                throw new ManagerSaveException();
+            }
+        } catch (IOException e) {
+            throw new ManagerSaveException();
+        }
+    }
+
+    public String[] toCsvRecord(Task t) {
+        if (t instanceof SubTask st)
+            return new String[] {
+                    String.valueOf(t.getId()),
+                    t.getClass().getName(),
+                    t.getName(),
+                    t.getStatus().name(),
+                    t.getDescription(),
+                    String.valueOf(st.getEpicId())
+            };
+        else
+            return new String[] {
+                    String.valueOf(t.getId()),
+                    t.getClass().getName(),
+                    t.getName(),
+                    t.getStatus().name(),
+                    t.getDescription(),
+                    null
+            };
     }
 }
