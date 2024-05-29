@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,9 +23,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private final Path backupFilePath;
     private static final String[] CSV_BACKUP_HEADER = {"id", "type", "name", "status", "description", "epic"};
 
-    public FileBackedTaskManager(String backupFilePathname) {
+    public FileBackedTaskManager(Path backupFilePath) {
         super();
-        backupFilePath = Paths.get(backupFilePathname);
+        this.backupFilePath = backupFilePath;
         restoreFromBackup(backupFilePath);
     }
 

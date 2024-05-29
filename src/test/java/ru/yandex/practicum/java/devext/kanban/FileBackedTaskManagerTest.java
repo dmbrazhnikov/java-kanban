@@ -19,12 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DisplayName("Менеджер задач in-memory с сохранением данных в файл")
 public class FileBackedTaskManagerTest {
 
-    private static FileBackedTaskManager taskManager;
+    private FileBackedTaskManager taskManager;
 
     @Test
     @DisplayName("Восстановление из файла резервной копии")
     void restoreFromBackup() {
-        taskManager = new FileBackedTaskManager(Paths.get("src","test", "resources", "backup.csv").toString());
+        taskManager = new FileBackedTaskManager(Paths.get("src","test", "resources", "backup.csv"));
         assertAll(
                 () -> assertEquals(2, taskManager.getEpics().size()),
                 () -> assertEquals(2, taskManager.getTasks().size()),
@@ -41,17 +41,12 @@ public class FileBackedTaskManagerTest {
         private Epic epic;
         private SubTask subTask;
         private String taskCsv, epicCsv, subTaskCsv;
-        private static Path tmpBackupPath;
-
-        @BeforeAll
-        static void beforeAll() throws IOException {
-            tmpBackupPath = Files.createTempFile("FileBackedTaskManagerTest", ".tmp.csv");
-            taskManager = new FileBackedTaskManager(tmpBackupPath.toString());
-            System.out.println(tmpBackupPath.toString());
-        }
+        private static final Path tmpBackupPath = Paths.get("src","test", "resources", "tmp_backup.csv");
 
         @BeforeEach
-        void beforeEach() {
+        void beforeEach() throws IOException {
+            Files.deleteIfExists(tmpBackupPath);
+            taskManager = new FileBackedTaskManager(tmpBackupPath);
             task = new Task(taskManager.getNextId(), "Test task");
             task.setDescription("Description");
             epic = new Epic(taskManager.getNextId(), "Test epic");
@@ -64,6 +59,11 @@ public class FileBackedTaskManagerTest {
             taskCsv = getCsvString(task);
             epicCsv = getCsvString(epic);
             subTaskCsv = getCsvString(subTask);
+        }
+
+        @AfterEach
+        void afterEach() throws IOException {
+            Files.deleteIfExists(tmpBackupPath);
         }
 
         @Test
