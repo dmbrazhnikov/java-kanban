@@ -18,7 +18,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Epic> epics;
     protected final Map<Integer, SubTask> subTasks;
     protected final HistoryManager historyManager;
-    protected final AtomicInteger idSeq;
+    protected AtomicInteger idSeq;
 
     public InMemoryTaskManager() {
         tasks = new ConcurrentHashMap<>();
