@@ -106,19 +106,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         tasks.forEach((id, task) -> records.add(toCsvRecord(task)));
         epics.forEach((id, epic) -> records.add(toCsvRecord(epic)));
         subTasks.forEach((id, subTask) -> records.add(toCsvRecord(subTask)));
+        ICSVWriter writer = null;
         try {
             Files.deleteIfExists(backupFilePath);
-            try (ICSVWriter writer = new CSVWriterBuilder(new FileWriter(backupFilePath.toFile(), StandardCharsets.UTF_8))
+            writer = new CSVWriterBuilder(new FileWriter(backupFilePath.toFile(), StandardCharsets.UTF_8))
                     .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER)
-                    .build()
-            ) {
-                writer.writeNext(CSV_BACKUP_HEADER);
-                writer.writeAll(records);
-            } catch (IOException e) {
-                throw new ManagerSaveException();
-            }
+                    .build();
+            writer.writeNext(CSV_BACKUP_HEADER);
+            writer.writeAll(records);
         } catch (IOException e) {
             throw new ManagerSaveException();
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    throw new ManagerSaveException();
+                }
+            }
         }
     }
 
