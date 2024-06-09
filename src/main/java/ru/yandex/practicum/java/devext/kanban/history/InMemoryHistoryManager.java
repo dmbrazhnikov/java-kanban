@@ -30,7 +30,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         List<Task> history = new LinkedList<>();
         Node l = last;
         while (l != null) {
-            history.addFirst(l.data);
+            history.add(0, l.data);
             l = l.prev;
         }
         return history;

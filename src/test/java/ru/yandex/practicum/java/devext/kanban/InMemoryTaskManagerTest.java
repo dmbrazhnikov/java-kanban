@@ -192,7 +192,7 @@ class InMemoryTaskManagerTest {
         @Test
         @DisplayName("Отвязывание ID подзадачи при её удалении")
         void unbindSubTaskFromEpic() {
-            int stId = refSubTasks.getFirst().getId();
+            int stId = refSubTasks.get(0).getId();
             taskManager.removeSubTask(stId);
             assertFalse(epic.getSubTaskIds().contains(stId));
         }

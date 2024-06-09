@@ -14,11 +14,11 @@ import static ru.yandex.practicum.java.devext.kanban.Managers.getDefaultHistory;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    private final Map<Integer, Task> tasks;
-    private final Map<Integer, Epic> epics;
-    private final Map<Integer, SubTask> subTasks;
-    private final HistoryManager historyManager;
-    private final AtomicInteger idSeq;
+    protected final Map<Integer, Task> tasks;
+    protected final Map<Integer, Epic> epics;
+    protected final Map<Integer, SubTask> subTasks;
+    protected final HistoryManager historyManager;
+    protected AtomicInteger idSeq;
 
     public InMemoryTaskManager() {
         tasks = new ConcurrentHashMap<>();
