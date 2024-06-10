@@ -8,7 +8,7 @@ import ru.yandex.practicum.java.devext.kanban.task.Task;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import java.util.stream.Collectors;
 import static ru.yandex.practicum.java.devext.kanban.Managers.getDefaultHistory;
 
 
@@ -159,15 +159,15 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateTask(Task updated) {
-        tasks.put(updated.getId(), updated);
+    public void updateTask(Task t) {
+        tasks.put(t.getId(), t);
     }
 
     @Override
-    public void updateEpic(Epic updated) {
-        int updatedId = updated.getId();
+    public void updateEpic(Epic e) {
+        int updatedId = e.getId();
         if (epics.containsKey(updatedId)) {
-            Set<Integer> subTaskIds = updated.getSubTaskIds();
+            Set<Integer> subTaskIds = e.getSubTaskIds();
             int newCounter = 0, doneCounter = 0;
             for (int stId : subTaskIds) {
                 SubTask st = subTasks.get(stId);
@@ -176,36 +176,33 @@ public class InMemoryTaskManager implements TaskManager {
                     case DONE -> doneCounter++;
                 }
                 if (!subTaskIds.isEmpty() && subTaskIds.size() == newCounter)
-                    updated.setStatus(Status.NEW);
+                    e.setStatus(Status.NEW);
                 else if (!subTaskIds.isEmpty() && subTaskIds.size() == doneCounter)
-                    updated.setStatus(Status.DONE);
+                    e.setStatus(Status.DONE);
                 else
-                    updated.setStatus(Status.IN_PROGRESS);
+                    e.setStatus(Status.IN_PROGRESS);
             }
-            epics.put(updatedId, updated);
+            epics.put(updatedId, e);
         } else
             System.out.println("Ошибка: эпик ещё не создан");
     }
 
     @Override
-    public void updateSubTask(SubTask updated) {
-        int updatedId = updated.getId();
+    public void updateSubTask(SubTask st) {
+        int updatedId = st.getId();
         if (subTasks.containsKey(updatedId)) {
-            subTasks.put(updatedId, updated);
-            updateEpic(epics.get(updated.getEpicId()));
+            subTasks.put(updatedId, st);
+            updateEpic(epics.get(st.getEpicId()));
         } else
             System.out.println("Ошибка: подзадача ещё не создана");
     }
 
     @Override
     public List<SubTask> getSubTasksForEpic(Epic e) {
-        List<SubTask> result = new ArrayList<>();
-        for (int stId : e.getSubTaskIds()) {
-            SubTask st = subTasks.get(stId);
-            if (st != null)
-                result.add(st);
-        }
-        return result;
+        return e.getSubTaskIds().stream()
+                .map(subTasks::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -217,4 +214,24 @@ public class InMemoryTaskManager implements TaskManager {
     public int getNextId() {
         return idSeq.getAndIncrement();
     }
+
+//    protected final void setEpicTimeline(Epic e) {
+//        e.setDuration(Duration.ZERO);
+//        LocalDateTime epicStartDateTime = LocalDateTime.MIN;
+//        e.getSubTaskIds().stream()
+//                        .map
+//
+//
+//
+//
+//
+//
+//
+//
+//        e.getSubTaskIds().forEach(stId -> {
+//            SubTask st = subTasks.get(stId);
+//            e.setDuration(e.getDuration().plus(st.getDuration()));
+//
+//        });
+//    }
 }

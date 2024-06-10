@@ -84,20 +84,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateTask(Task updated) {
-        super.updateTask(updated);
+    public void updateTask(Task t) {
+        super.updateTask(t);
         save();
     }
 
     @Override
-    public void updateEpic(Epic updated) {
-        super.updateEpic(updated);
+    public void updateEpic(Epic e) {
+        super.updateEpic(e);
         save();
     }
 
     @Override
-    public void updateSubTask(SubTask updated) {
-        super.updateSubTask(updated);
+    public void updateSubTask(SubTask st) {
+        super.updateSubTask(st);
         save();
     }
 
@@ -166,10 +166,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         tasks.put(id, t);
                     }
                 }
-                for (SubTask st : subTasks.values()) {
+                subTasks.values().forEach(st -> {
                     Epic parentEpic = epics.get(st.getEpicId());
                     parentEpic.getSubTaskIds().add(st.getId());
-                }
+                });
                 idSeq = new AtomicInteger(maxId);
             } catch (FileNotFoundException e) {
                 throw new ManagerLoadException("File not found: " + backupPath);
