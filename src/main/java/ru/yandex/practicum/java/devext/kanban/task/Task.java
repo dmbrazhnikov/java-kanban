@@ -28,7 +28,7 @@ public class Task {
         status = Status.NEW;
     }
 
-    LocalDateTime getEndTime() {
+    public LocalDateTime getEndDateTime() {
         return startDateTime.plus(duration);
     }
 

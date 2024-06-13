@@ -5,6 +5,9 @@ import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.Status;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,6 +53,7 @@ public class InMemoryTaskManager implements TaskManager {
             st.setEpicId(e.getId());
             e.bindSubTask(st);
             subTasks.put(st.getId(), st);
+            setEpicTimeline(e);
         }
     }
 
@@ -125,6 +129,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic e = epics.get(st.getEpicId());
             e.unbindSubTask(st);
             subTasks.remove(st.getId());
+            setEpicTimeline(e);
             historyManager.remove(st);
             int doneCounter = 0;
             Set<Integer> subtaskIds = e.getSubTaskIds();
@@ -183,6 +188,7 @@ public class InMemoryTaskManager implements TaskManager {
                     e.setStatus(Status.IN_PROGRESS);
             }
             epics.put(updatedId, e);
+            setEpicTimeline(e);
         } else
             System.out.println("Ошибка: эпик ещё не создан");
     }
@@ -191,8 +197,9 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateSubTask(SubTask st) {
         int updatedId = st.getId();
         if (subTasks.containsKey(updatedId)) {
+            Epic e = epics.get(st.getEpicId());
             subTasks.put(updatedId, st);
-            updateEpic(epics.get(st.getEpicId()));
+            updateEpic(e);
         } else
             System.out.println("Ошибка: подзадача ещё не создана");
     }
@@ -215,23 +222,29 @@ public class InMemoryTaskManager implements TaskManager {
         return idSeq.getAndIncrement();
     }
 
-//    protected final void setEpicTimeline(Epic e) {
-//        e.setDuration(Duration.ZERO);
-//        LocalDateTime epicStartDateTime = LocalDateTime.MIN;
-//        e.getSubTaskIds().stream()
-//                        .map
-//
-//
-//
-//
-//
-//
-//
-//
-//        e.getSubTaskIds().forEach(stId -> {
-//            SubTask st = subTasks.get(stId);
-//            e.setDuration(e.getDuration().plus(st.getDuration()));
-//
-//        });
-//    }
+    protected final void setEpicTimeline(Epic e) {
+        // Продолжительность эпика — сумма продолжительностей всех его подзадач
+        e.setDuration(
+                e.getSubTaskIds().stream()
+                        .map(subTasks::get)
+                        .map(SubTask::getDuration)
+                        .reduce(Duration.ZERO, Duration::plus)
+        );
+        // Время начала — дата старта самой ранней подзадачи
+        e.setStartDateTime(
+                e.getSubTaskIds().stream()
+                        .map(subTasks::get)
+                        .map(SubTask::getStartDateTime)
+                        .min(LocalDateTime::compareTo)
+                        .orElse(null)
+        );
+        // время завершения — время окончания самой поздней из задач
+        e.setEndDateTime(
+                e.getSubTaskIds().stream()
+                        .map(subTasks::get)
+                        .map(SubTask::getEndDateTime)
+                        .max(LocalDateTime::compareTo)
+                        .orElse(null)
+        );
+    }
 }

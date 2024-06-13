@@ -1,8 +1,9 @@
-package ru.yandex.practicum.java.devext.kanban;
+package ru.yandex.practicum.java.devext.kanban.management;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.java.devext.kanban.Managers;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
@@ -18,13 +19,12 @@ import java.util.concurrent.ThreadLocalRandom;
 public class InMemoryTaskManagerIntegrationTest {
 
     private TaskManager taskManager;
-    private ArrayList<Task> refTasks;
     private LinkedList<Task> refHistory;
 
     @BeforeEach
     void beforeEach() {
         taskManager = Managers.getDefault();
-        refTasks = new ArrayList<>();
+        ArrayList<Task> refTasks = new ArrayList<>();
         refHistory = new LinkedList<>();
         // Подготавливаем 3 простые задачи, 3 эпика и по 3 подзадачи на эпик, итого 12 задач.
         for (int i = 0; i < 3; i++) {

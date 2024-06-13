@@ -1,4 +1,4 @@
-package ru.yandex.practicum.java.devext.kanban;
+package ru.yandex.practicum.java.devext.kanban.management;
 
 import org.junit.jupiter.api.*;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
