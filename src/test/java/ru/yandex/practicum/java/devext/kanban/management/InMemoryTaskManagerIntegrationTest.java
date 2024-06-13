@@ -9,6 +9,9 @@ import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +32,8 @@ public class InMemoryTaskManagerIntegrationTest {
         // Подготавливаем 3 простые задачи, 3 эпика и по 3 подзадачи на эпик, итого 12 задач.
         for (int i = 0; i < 3; i++) {
             Task t = new Task(taskManager.getNextId(), "Test task " + (i + 1));
+            t.setStartDateTime(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(10, 30)));
+            t.setDuration(Duration.ofDays(2));
             refTasks.add(t);
             taskManager.addTask(t);
         }
@@ -38,6 +43,8 @@ public class InMemoryTaskManagerIntegrationTest {
             taskManager.addEpic(e);
             for (int j = 0; j < 3; j++) {
                 SubTask st = new SubTask(taskManager.getNextId(), "Subtask " + i + j);
+                st.setStartDateTime(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(10, 30)));
+                st.setDuration(Duration.ofDays(1));
                 refTasks.add(st);
                 taskManager.addSubTask(st, e);
             }
