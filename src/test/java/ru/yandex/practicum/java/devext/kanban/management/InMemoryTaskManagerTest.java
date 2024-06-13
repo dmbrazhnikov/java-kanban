@@ -348,4 +348,35 @@ class InMemoryTaskManagerTest {
         }
     }
 
+    @Test
+    @DisplayName("Отсортированные по приоритету задачи")
+    void getPrioritizedTasks() {
+        Task[] refArray = new Task[4];
+        Task t1 = new Task(taskManager.getNextId(), "Test task 3");
+        t1.setStartDateTime(LocalDateTime.now().plusMinutes(60));
+        t1.setDuration(Duration.ofDays(1));
+        refArray[3] = t1;
+        taskManager.addTask(t1);
+        Task t2 = new Task(taskManager.getNextId(), "Test task 0");
+        t2.setStartDateTime(LocalDateTime.now().minusMinutes(60));
+        t2.setDuration(Duration.ofDays(1));
+        refArray[0] = t2;
+        taskManager.addTask(t2);
+        Epic e = new Epic(taskManager.getNextId(), "Test epic");
+        taskManager.addEpic(e);
+        SubTask st1 = new SubTask(taskManager.getNextId(), "Subtask 2");
+        st1.setStartDateTime(LocalDateTime.now().plusMinutes(10));
+        st1.setDuration(Duration.ofDays(1));
+        refArray[2] = st1;
+        taskManager.addSubTask(st1, e);
+        SubTask st2 = new SubTask(taskManager.getNextId(), "Subtask 1");
+        st2.setStartDateTime(LocalDateTime.now().minusMinutes(10));
+        st2.setDuration(Duration.ofDays(1));
+        refArray[1] = st2;
+        taskManager.addSubTask(st2, e);
+        LinkedList<Task> refList = new LinkedList<>();
+        Collections.addAll(refList, refArray);
+        TreeSet<Task> actualPrioritizedTaskSet = taskManager.getPrioritizedTasks();
+        assertEquals(refList, new LinkedList<>(actualPrioritizedTaskSet));
+    }
 }

@@ -77,6 +77,8 @@ public class InMemoryTaskManagerIntegrationTest {
     @DisplayName("Удаление из истории при удалении задачи")
     void removeFromHistory() {
         Task t = new Task(taskManager.getNextId(), "Test task");
+        t.setStartDateTime(LocalDateTime.now().plusMinutes(60));
+        t.setDuration(Duration.ofDays(1));
         taskManager.addTask(t);
         taskManager.getTaskById(t.getId());
         taskManager.removeTask(t.getId());

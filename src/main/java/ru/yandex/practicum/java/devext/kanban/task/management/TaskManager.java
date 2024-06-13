@@ -5,6 +5,7 @@ import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 
 import java.util.List;
+import java.util.TreeSet;
 
 public interface TaskManager {
     void addTask(Task t);
@@ -48,4 +49,6 @@ public interface TaskManager {
     List<Task> getHistory();
 
     int getNextId();
+
+    TreeSet<Task> getPrioritizedTasks();
 }

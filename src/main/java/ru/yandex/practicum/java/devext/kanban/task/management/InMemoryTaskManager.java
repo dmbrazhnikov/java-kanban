@@ -22,6 +22,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, SubTask> subTasks;
     protected final HistoryManager historyManager;
     protected AtomicInteger idSeq;
+    protected final TreeSet<Task> prioritizedTasks;
 
     public InMemoryTaskManager() {
         tasks = new ConcurrentHashMap<>();
@@ -29,12 +30,15 @@ public class InMemoryTaskManager implements TaskManager {
         subTasks = new ConcurrentHashMap<>();
         historyManager = getDefaultHistory();
         idSeq = new AtomicInteger();
+        prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartDateTime));
     }
 
     @Override
     public void addTask(Task t) {
-        if (t.getStatus() == Status.NEW)
+        if (t.getStatus() == Status.NEW) {
             tasks.put(t.getId(), t);
+            prioritizedTasks.add(t);
+        }
     }
 
     @Override
@@ -53,6 +57,7 @@ public class InMemoryTaskManager implements TaskManager {
             st.setEpicId(e.getId());
             e.bindSubTask(st);
             subTasks.put(st.getId(), st);
+            prioritizedTasks.add(st);
             setEpicTimeline(e);
         }
     }
@@ -215,6 +220,11 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
+    }
+
+    @Override
+    public TreeSet<Task> getPrioritizedTasks() {
+        return new TreeSet<>(prioritizedTasks);
     }
 
     @Override
