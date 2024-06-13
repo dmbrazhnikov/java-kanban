@@ -6,14 +6,20 @@ import ru.yandex.practicum.java.devext.kanban.task.Status;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import ru.yandex.practicum.java.devext.kanban.task.management.FileBackedTaskManager;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static ru.yandex.practicum.java.devext.kanban.task.management.CommonDateTimeFormatter.ISO_LOCAL;
 
 
 @DisplayName("Менеджер задач in-memory с сохранением данных в файл")
@@ -28,8 +34,8 @@ public class FileBackedTaskManagerTest {
         assertAll(
                 () -> assertEquals(2, taskManager.getEpics().size()),
                 () -> assertEquals(2, taskManager.getTasks().size()),
-                () -> assertEquals(2, taskManager.getSubTasks().size()),
-                () -> assertEquals(2, taskManager.getEpicById(2).getSubTaskIds().size())
+                () -> assertEquals(3, taskManager.getSubTasks().size()),
+                () -> assertEquals(3, taskManager.getEpicById(2).getSubTaskIds().size())
         );
     }
 
@@ -39,26 +45,36 @@ public class FileBackedTaskManagerTest {
 
         private Task task;
         private Epic epic;
-        private SubTask subTask;
-        private String taskCsv, epicCsv, subTaskCsv;
+        private String taskCsv, epicCsv;
+        private List<SubTask> refSubTasks;
+        private static final int SUBTASKS_PER_EPIC = 3;
         private static final Path tmpBackupPath = Paths.get("src","test", "resources", "tmp_backup.csv");
 
         @BeforeEach
         void beforeEach() throws IOException {
             Files.deleteIfExists(tmpBackupPath);
             taskManager = new FileBackedTaskManager(tmpBackupPath);
+            // Простая задача
             task = new Task(taskManager.getNextId(), "Test task");
             task.setDescription("Description");
+            task.setStartDateTime(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(10, 30)));
+            task.setDuration(Duration.ofDays(2));
+            taskManager.addTask(task);
+            taskCsv = getCsvString(task);
+            // Эпик
             epic = new Epic(taskManager.getNextId(), "Test epic");
             epic.setDescription("Description");
-            subTask = new SubTask(taskManager.getNextId(), "Test subtask");
-            subTask.setDescription("Description");
-            taskManager.addTask(task);
             taskManager.addEpic(epic);
-            taskManager.addSubTask(subTask, epic);
-            taskCsv = getCsvString(task);
             epicCsv = getCsvString(epic);
-            subTaskCsv = getCsvString(subTask);
+            // Подзадача
+            refSubTasks = new LinkedList<>();
+            for (int i = 0; i < SUBTASKS_PER_EPIC; i++) {
+                SubTask st = new SubTask(taskManager.getNextId(), "Test subtask " + (i + 1));
+                st.setStartDateTime(LocalDateTime.now().plusMinutes(10));
+                st.setDuration(Duration.ofDays(1));
+                refSubTasks.add(st);
+                taskManager.addSubTask(st, epic);
+            }
         }
 
         @AfterEach
@@ -69,7 +85,8 @@ public class FileBackedTaskManagerTest {
         @Test
         @DisplayName("Сохранение в файл при добавлении задач")
         void checkFileBackup() throws IOException {
-            String backupContent = Files.readString(tmpBackupPath);
+            String backupContent = Files.readString(tmpBackupPath),
+                    subTaskCsv = getCsvString(refSubTasks.get(0));
             assertAll(
                     () -> assertTrue(Files.exists(tmpBackupPath)),
                     () -> assertTrue(backupContent.contains(taskCsv)),
@@ -104,7 +121,7 @@ public class FileBackedTaskManagerTest {
                 assertAll(
                         () -> assertNull(taskManager.getTaskById(task.getId())),
                         () -> assertEquals(1, taskManager.getEpics().size()),
-                        () -> assertEquals(1, taskManager.getSubTasks().size()),
+                        () -> assertEquals(refSubTasks.size(), taskManager.getSubTasks().size()),
                         () -> assertTrue(Files.exists(tmpBackupPath)),
                         () -> assertFalse(backupContent.contains(taskCsv))
                 );
@@ -132,13 +149,13 @@ public class FileBackedTaskManagerTest {
             @Test
             @DisplayName("Удаление")
             void removeEpic() throws IOException {
-                subTask.setStatus(Status.DONE);
+                refSubTasks.forEach(st -> st.setStatus(Status.DONE));
                 taskManager.removeEpic(epic.getId());
                 String backupContent = Files.readString(tmpBackupPath);
                 assertAll(
                         () -> assertNull(taskManager.getEpicById(epic.getId())),
                         () -> assertEquals(1, taskManager.getTasks().size()),
-                        () -> assertEquals(1, taskManager.getSubTasks().size()),
+                        () -> assertEquals(refSubTasks.size(), taskManager.getSubTasks().size()),
                         () -> assertTrue(Files.exists(tmpBackupPath)),
                         () -> assertFalse(backupContent.contains(epicCsv))
                 );
@@ -152,12 +169,13 @@ public class FileBackedTaskManagerTest {
             @Test
             @DisplayName("Обновление")
             void updateSubTask() throws IOException {
-                subTask.setDescription(UUID.randomUUID().toString());
-                taskManager.updateSubTask(subTask);
-                subTaskCsv = getCsvString(subTask);
+                SubTask st = refSubTasks.get(0);
+                st.setDescription(UUID.randomUUID().toString());
+                taskManager.updateSubTask(st);
+                String subTaskCsv = getCsvString(st);
                 String backupContent = Files.readString(tmpBackupPath);
                 assertAll(
-                        () -> assertEquals(subTask.getDescription(), taskManager.getSubTaskById(subTask.getId()).getDescription()),
+                        () -> assertEquals(st.getDescription(), taskManager.getSubTaskById(st.getId()).getDescription()),
                         () -> assertTrue(Files.exists(tmpBackupPath)),
                         () -> assertTrue(backupContent.contains(subTaskCsv))
                 );
@@ -166,11 +184,12 @@ public class FileBackedTaskManagerTest {
             @Test
             @DisplayName("Удаление")
             void removeSubTask() throws IOException {
-                // TODO
-                taskManager.removeSubTask(subTask.getId());
-                String backupContent = Files.readString(tmpBackupPath);
+                SubTask st = refSubTasks.get(0);
+                taskManager.removeSubTask(st.getId());
+                String backupContent = Files.readString(tmpBackupPath),
+                        subTaskCsv = getCsvString(st);
                 assertAll(
-                        () -> assertNull(taskManager.getSubTaskById(subTask.getId())),
+                        () -> assertNull(taskManager.getSubTaskById(st.getId())),
                         () -> assertEquals(1, taskManager.getTasks().size()),
                         () -> assertEquals(1, taskManager.getEpics().size()),
                         () -> assertTrue(Files.exists(tmpBackupPath)),
@@ -184,18 +203,24 @@ public class FileBackedTaskManagerTest {
         if (t instanceof SubTask st)
             return String.join(",",
                     String.valueOf(st.getId()),
-                    st.getClass().getName(),
+                    st.getClass().getSimpleName(),
                     st.getName(),
                     st.getStatus().name(),
-                    st.getDescription(),
-                    String.valueOf(st.getEpicId()));
+                    Optional.ofNullable(st.getDescription()).orElse(""),
+                    String.valueOf(st.getEpicId()),
+                    t.getStartDateTime().format(ISO_LOCAL.getDtf()),
+                    String.valueOf(t.getDuration().toMinutes())
+            );
         else
             return String.join(",",
                     String.valueOf(t.getId()),
-                    t.getClass().getName(),
+                    t.getClass().getSimpleName(),
                     t.getName(),
                     t.getStatus().name(),
-                    t.getDescription(),
-                    "");
+                    Optional.ofNullable(t.getDescription()).orElse(""),
+                    "",
+                    t instanceof Epic ? "" : t.getStartDateTime().format(ISO_LOCAL.getDtf()),
+                    t instanceof Epic ? "" : String.valueOf(t.getDuration().toMinutes())
+            );
     }
 }

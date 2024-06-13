@@ -13,15 +13,20 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import static ru.yandex.practicum.java.devext.kanban.task.management.CommonDateTimeFormatter.ISO_LOCAL;
 
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private final Path backupFilePath;
-    private static final String[] CSV_BACKUP_HEADER = {"id", "type", "name", "status", "description", "epic"};
+    private static final String[] CSV_BACKUP_HEADER = {
+            "id", "type", "name", "status", "description", "epicId", "startDateTime", "durationMinutes"
+    };
 
     public FileBackedTaskManager(Path backupFilePath) {
         super();
@@ -158,11 +163,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         st.setStatus(status);
                         st.setDescription(line[4]);
                         st.setEpicId(Integer.parseInt(line[5]));
+                        st.setStartDateTime(LocalDateTime.parse(line[6], ISO_LOCAL.getDtf()));
+                        st.setDuration(Duration.ofMinutes(Long.parseLong(line[7])));
                         subTasks.put(id, st);
                     } else {
                         Task t = new Task(id, line[2]);
                         t.setStatus(status);
                         t.setDescription(line[4]);
+                        t.setStartDateTime(LocalDateTime.parse(line[6], ISO_LOCAL.getDtf()));
+                        t.setDuration(Duration.ofMinutes(Long.parseLong(line[7])));
                         tasks.put(id, t);
                     }
                 }
@@ -185,20 +194,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         if (t instanceof SubTask st)
             return new String[] {
                     String.valueOf(t.getId()),
-                    t.getClass().getName(),
+                    t.getClass().getSimpleName(),
                     t.getName(),
                     t.getStatus().name(),
                     t.getDescription(),
-                    String.valueOf(st.getEpicId())
+                    String.valueOf(st.getEpicId()),
+                    t.getStartDateTime().format(ISO_LOCAL.getDtf()),
+                    String.valueOf(t.getDuration().toMinutes())
             };
         else
             return new String[] {
                     String.valueOf(t.getId()),
-                    t.getClass().getName(),
+                    t.getClass().getSimpleName(),
                     t.getName(),
                     t.getStatus().name(),
                     t.getDescription(),
-                    null
+                    null,
+                    t instanceof Epic ? null : t.getStartDateTime().format(ISO_LOCAL.getDtf()),
+                    t instanceof Epic ? null : String.valueOf(t.getDuration().toMinutes())
             };
     }
 }
