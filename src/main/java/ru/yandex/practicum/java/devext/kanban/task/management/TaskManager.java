@@ -4,6 +4,7 @@ import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -50,5 +51,5 @@ public interface TaskManager {
 
     int getNextId();
 
-    TreeSet<Task> getPrioritizedTasks();
+    LinkedList<Task> getPrioritizedTasks();
 }

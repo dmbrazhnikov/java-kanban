@@ -37,7 +37,8 @@ public class InMemoryTaskManager implements TaskManager {
     public void addTask(Task t) {
         if (t.getStatus() == Status.NEW) {
             tasks.put(t.getId(), t);
-            prioritizedTasks.add(t);
+            if (t.getStartDateTime() != null)
+                prioritizedTasks.add(t);
         }
     }
 
@@ -57,8 +58,10 @@ public class InMemoryTaskManager implements TaskManager {
             st.setEpicId(e.getId());
             e.bindSubTask(st);
             subTasks.put(st.getId(), st);
-            prioritizedTasks.add(st);
-            setEpicTimeline(e);
+            if (st.getStartDateTime() != null) {
+                prioritizedTasks.add(st);
+                setEpicTimeline(e);
+            }
         }
     }
 
@@ -223,8 +226,8 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public TreeSet<Task> getPrioritizedTasks() {
-        return new TreeSet<>(prioritizedTasks);
+    public LinkedList<Task> getPrioritizedTasks() {
+        return new LinkedList<>(prioritizedTasks);
     }
 
     @Override
@@ -232,7 +235,11 @@ public class InMemoryTaskManager implements TaskManager {
         return idSeq.getAndIncrement();
     }
 
-    protected final void setEpicTimeline(Epic e) {
+//    private boolean startDateTimesOverlap() {
+//
+//    }
+
+    private void setEpicTimeline(Epic e) {
         // Продолжительность эпика — сумма продолжительностей всех его подзадач
         e.setDuration(
                 e.getSubTaskIds().stream()
@@ -245,6 +252,7 @@ public class InMemoryTaskManager implements TaskManager {
                 e.getSubTaskIds().stream()
                         .map(subTasks::get)
                         .map(SubTask::getStartDateTime)
+                        .filter(Objects::nonNull)
                         .min(LocalDateTime::compareTo)
                         .orElse(null)
         );
@@ -252,6 +260,7 @@ public class InMemoryTaskManager implements TaskManager {
         e.setEndDateTime(
                 e.getSubTaskIds().stream()
                         .map(subTasks::get)
+                        .filter(st -> st.getStartDateTime() != null)
                         .map(SubTask::getEndDateTime)
                         .max(LocalDateTime::compareTo)
                         .orElse(null)

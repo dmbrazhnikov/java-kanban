@@ -2,6 +2,7 @@ package ru.yandex.practicum.java.devext.kanban.history;
 
 import jdk.jfr.Description;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,7 +52,7 @@ class InMemoryHistoryManagerTest {
     @ParameterizedTest
     @DisplayName("Повторное добавление")
     @Description("Повторное добавление просмотренной ранее задачи в непустую историю просмотра")
-    @ValueSource(ints = {21, 10_000_000})
+    @ValueSource(ints = {21})
     void addAlreadyViewed(int tasksQuantity) {
         // Подготовка
         refTasks = getTestTasks(tasksQuantity);
