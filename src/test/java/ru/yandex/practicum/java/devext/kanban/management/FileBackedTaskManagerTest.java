@@ -1,11 +1,12 @@
 package ru.yandex.practicum.java.devext.kanban.management;
 
 import org.junit.jupiter.api.*;
+import ru.yandex.practicum.java.devext.kanban.BaseTest;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.Status;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
-import ru.yandex.practicum.java.devext.kanban.task.management.FileBackedTaskManager;
+import ru.yandex.practicum.java.devext.kanban.task.management.filebacked.FileBackedTaskManager;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,7 +24,7 @@ import static ru.yandex.practicum.java.devext.kanban.task.management.CommonDateT
 
 
 @DisplayName("Менеджер задач in-memory с сохранением данных в файл")
-public class FileBackedTaskManagerTest {
+public class FileBackedTaskManagerTest extends BaseTest {
 
     private FileBackedTaskManager taskManager;
 
@@ -46,7 +47,7 @@ public class FileBackedTaskManagerTest {
         private Task task;
         private Epic epic;
         private String taskCsv, epicCsv;
-        private List<SubTask> refSubTasks;
+        private List<Task> refSubTasks;
         private static final int SUBTASKS_PER_EPIC = 3;
         private static final Path tmpBackupPath = Paths.get("src","test", "resources", "tmp_backup.csv");
 
@@ -68,13 +69,7 @@ public class FileBackedTaskManagerTest {
             epicCsv = getCsvString(epic);
             // Подзадача
             refSubTasks = new LinkedList<>();
-            for (int i = 0; i < SUBTASKS_PER_EPIC; i++) {
-                SubTask st = new SubTask(taskManager.getNextId(), "Test subtask " + (i + 1));
-                st.setStartDateTime(LocalDateTime.now().plusMinutes(10));
-                st.setDuration(Duration.ofDays(1));
-                refSubTasks.add(st);
-                taskManager.addSubTask(st, epic);
-            }
+            addSubtasksForEpic(refSubTasks, taskManager, epic, 3);
         }
 
         @AfterEach
@@ -169,7 +164,7 @@ public class FileBackedTaskManagerTest {
             @Test
             @DisplayName("Обновление")
             void updateSubTask() throws IOException {
-                SubTask st = refSubTasks.get(0);
+                SubTask st = (SubTask) refSubTasks.get(0);
                 st.setDescription(UUID.randomUUID().toString());
                 taskManager.updateSubTask(st);
                 String subTaskCsv = getCsvString(st);
@@ -184,7 +179,7 @@ public class FileBackedTaskManagerTest {
             @Test
             @DisplayName("Удаление")
             void removeSubTask() throws IOException {
-                SubTask st = refSubTasks.get(0);
+                SubTask st = (SubTask) refSubTasks.get(0);
                 taskManager.removeSubTask(st.getId());
                 String backupContent = Files.readString(tmpBackupPath),
                         subTaskCsv = getCsvString(st);

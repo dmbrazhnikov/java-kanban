@@ -36,6 +36,12 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addTask(Task t) {
         if (t.getStatus() == Status.NEW) {
+            Optional<Task> overlap = tasks.values().stream()
+                    .filter(t1 -> executionDateTimeOverlaps(t1, t))
+                    .findFirst();
+            if (overlap.isPresent())
+                throw new TimelineOverlapException("Задача " + t + " пересекается по времени выполнения с задачей "
+                        + overlap.get());
             tasks.put(t.getId(), t);
             if (t.getStartDateTime() != null)
                 prioritizedTasks.add(t);
@@ -53,6 +59,12 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addSubTask(SubTask st, Epic e) {
         if (st.getStatus() == Status.NEW) {
+            long overlapCount = subTasks.values().stream()
+                    .filter(st1 -> executionDateTimeOverlaps(st1, st))
+                    .count();
+            if (overlapCount > 0)
+                throw new TimelineOverlapException("Подзадача " + st + " пересекается по времени выполнения с уже добавленными "
+                        + overlapCount + " подзадачами");
             if (!epics.containsKey(e.getId()))
                 addEpic(e);
             st.setEpicId(e.getId());
@@ -235,9 +247,16 @@ public class InMemoryTaskManager implements TaskManager {
         return idSeq.getAndIncrement();
     }
 
-//    private boolean startDateTimesOverlap() {
-//
-//    }
+    // Метод сделан публичным для того, чтобы не городить в тестах огороды с рефлексией
+    public final boolean executionDateTimeOverlaps(Task t1, Task t2) {
+        if (t1.getStartDateTime() != null
+                && t2.getStartDateTime() != null
+                && t1.getDuration() != null
+                && t2.getDuration() != null) {
+            return t1.getEndDateTime().isAfter(t2.getStartDateTime()) && t2.getEndDateTime().isAfter(t1.getStartDateTime());
+        } else
+            return false;
+    }
 
     private void setEpicTimeline(Epic e) {
         // Продолжительность эпика — сумма продолжительностей всех его подзадач

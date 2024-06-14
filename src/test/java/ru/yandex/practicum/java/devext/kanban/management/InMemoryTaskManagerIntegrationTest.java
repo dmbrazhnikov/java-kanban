@@ -3,6 +3,7 @@ package ru.yandex.practicum.java.devext.kanban.management;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.java.devext.kanban.BaseTest;
 import ru.yandex.practicum.java.devext.kanban.Managers;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
@@ -19,7 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 
 @DisplayName("Интеграционные тесты менеджеров задач и истории")
-public class InMemoryTaskManagerIntegrationTest {
+public class InMemoryTaskManagerIntegrationTest extends BaseTest {
 
     private TaskManager taskManager;
     private LinkedList<Task> refHistory;
@@ -30,25 +31,8 @@ public class InMemoryTaskManagerIntegrationTest {
         ArrayList<Task> refTasks = new ArrayList<>();
         refHistory = new LinkedList<>();
         // Подготавливаем 3 простые задачи, 3 эпика и по 3 подзадачи на эпик, итого 12 задач.
-        for (int i = 0; i < 3; i++) {
-            Task t = new Task(taskManager.getNextId(), "Test task " + (i + 1));
-            t.setStartDateTime(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(10, 30)));
-            t.setDuration(Duration.ofDays(2));
-            refTasks.add(t);
-            taskManager.addTask(t);
-        }
-        for (int i = 0; i < 3; i++) {
-            Epic e = new Epic(taskManager.getNextId(), "Test epic " + (i + 1));
-            refTasks.add(e);
-            taskManager.addEpic(e);
-            for (int j = 0; j < 3; j++) {
-                SubTask st = new SubTask(taskManager.getNextId(), "Subtask " + i + j);
-                st.setStartDateTime(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(10, 30)));
-                st.setDuration(Duration.ofDays(1));
-                refTasks.add(st);
-                taskManager.addSubTask(st, e);
-            }
-        }
+        addTasks(refTasks, taskManager, 3);
+        addEpicWithSubTasks(refTasks, refTasks, taskManager, 3, 3);
         for (int i = 0; i < refTasks.size(); i++) {
             Task randomTask = refTasks.get(ThreadLocalRandom.current().nextInt(0, refTasks.size()));
             refHistory.remove(randomTask);
@@ -77,8 +61,8 @@ public class InMemoryTaskManagerIntegrationTest {
     @DisplayName("Удаление из истории при удалении задачи")
     void removeFromHistory() {
         Task t = new Task(taskManager.getNextId(), "Test task");
-        t.setStartDateTime(LocalDateTime.now().plusMinutes(60));
-        t.setDuration(Duration.ofDays(1));
+        t.setStartDateTime(LocalDateTime.now().minusDays(1));
+        t.setDuration(Duration.ofHours(1));
         taskManager.addTask(t);
         taskManager.getTaskById(t.getId());
         taskManager.removeTask(t.getId());

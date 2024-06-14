@@ -1,6 +1,7 @@
 package ru.yandex.practicum.java.devext.kanban.management;
 
 import org.junit.jupiter.api.*;
+import ru.yandex.practicum.java.devext.kanban.BaseTest;
 import ru.yandex.practicum.java.devext.kanban.Managers;
 import ru.yandex.practicum.java.devext.kanban.task.Status;
 import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
@@ -8,17 +9,14 @@ import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import ru.yandex.practicum.java.devext.kanban.task.management.InMemoryTaskManager;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("Менеджер задач in-memory")
-class InMemoryTaskManagerTest {
+class InMemoryTaskManagerTest extends BaseTest {
 
     private TaskManager taskManager;
 
@@ -157,22 +155,15 @@ class InMemoryTaskManagerTest {
 
         private Epic epic;
         private Set<Integer> refSubTaskIds;
-        private List<SubTask> refSubTasks;
-        private static final int SUBTASKS_PER_EPIC = 3;
+        private List<Task> refSubTasks;
 
         @BeforeEach
         void beforeEach() {
             refSubTaskIds = new HashSet<>();
             refSubTasks = new LinkedList<>();
             epic = new Epic(taskManager.getNextId(), "Test epic");
-            for (int i = 0; i < SUBTASKS_PER_EPIC; i++) {
-                SubTask st = new SubTask(taskManager.getNextId(), "Test subtask " + (i + 1));
-                st.setStartDateTime(LocalDateTime.now().plusMinutes(10));
-                st.setDuration(Duration.ofDays(1));
-                refSubTaskIds.add(st.getId());
-                refSubTasks.add(st);
-                taskManager.addSubTask(st, epic);
-            }
+            addSubtasksForEpic(refSubTasks, taskManager, epic, 3);
+            refSubTasks.forEach(st -> refSubTaskIds.add(st.getId()));
         }
 
         @Test
@@ -214,6 +205,7 @@ class InMemoryTaskManagerTest {
         @DisplayName("Зависимость длительности и даты-времени эпика от его подзадач")
         void setEpicTimeline() {
             Duration expectedEpicDuration = refSubTasks.stream()
+                    .map(t -> (SubTask) t)
                     .map(SubTask::getDuration)
                     .reduce(Duration.ZERO, Duration::plus);
             assertAll(
@@ -229,8 +221,8 @@ class InMemoryTaskManagerTest {
     class MultipleTasksTest {
 
         private List<Task> refTasks;
-        private List<Epic> refEpics;
-        private List<SubTask> refSubTasks;
+        private List<Task> refEpics;
+        private List<Task> refSubTasks;
 
         @Nested
         @DisplayName("Простая задача")
@@ -239,13 +231,7 @@ class InMemoryTaskManagerTest {
             @BeforeEach
             void beforeEach() {
                 refTasks = new ArrayList<>();
-                for (int i = 0; i < 3; i++) {
-                    Task t = new Task(taskManager.getNextId(), "Test task " + (i + 1));
-                    t.setStartDateTime(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(10, 30)));
-                    t.setDuration(Duration.ofDays(2));
-                    refTasks.add(t);
-                    taskManager.addTask(t);
-                }
+                addTasks(refTasks, taskManager, 3);
             }
 
             @Test
@@ -306,18 +292,7 @@ class InMemoryTaskManagerTest {
             void beforeEach() {
                 refEpics = new ArrayList<>();
                 refSubTasks = new ArrayList<>();
-                for (int i = 0; i < 3; i++) {
-                    Epic e = new Epic(taskManager.getNextId(), "Test epic " + (i + 1));
-                    refEpics.add(e);
-                    taskManager.addEpic(e);
-                    for (int j = 0; j < 3; j++) {
-                        SubTask st = new SubTask(taskManager.getNextId(), "Subtask " + i + j);
-                        st.setStartDateTime(LocalDateTime.now().plusMinutes(10));
-                        st.setDuration(Duration.ofDays(1));
-                        refSubTasks.add(st);
-                        taskManager.addSubTask(st, e);
-                    }
-                }
+                addEpicWithSubTasks(refEpics, refSubTasks, taskManager, 2, 3);
             }
 
             @Test
@@ -335,7 +310,7 @@ class InMemoryTaskManagerTest {
             void removeAllSubTasks() {
                 taskManager.removeAllSubTasks();
                 int counter = 0;
-                for (Epic e : refEpics) {
+                for (Task e : refEpics) {
                     Epic actualEpic = taskManager.getEpicById(e.getId());
                     counter += actualEpic.getSubTaskIds().size();
                 }
@@ -361,22 +336,22 @@ class InMemoryTaskManagerTest {
         void beforeEach() {
             // Задачи для приоритизации
             t1 = new Task(taskManager.getNextId(), "Test task 3");
-            t1.setStartDateTime(LocalDateTime.now().plusMinutes(60));
-            t1.setDuration(Duration.ofDays(1));
+            t1.setStartDateTime(LocalDateTime.now().plusHours(6));
+            t1.setDuration(Duration.ofHours(1));
             t2 = new Task(taskManager.getNextId(), "Test task 0");
-            t2.setStartDateTime(LocalDateTime.now().minusMinutes(60));
-            t2.setDuration(Duration.ofDays(1));
+            t2.setStartDateTime(LocalDateTime.now().minusHours(6));
+            t2.setDuration(Duration.ofHours(1));
             e = new Epic(taskManager.getNextId(), "Test epic");
             taskManager.addEpic(e);
             st1 = new SubTask(taskManager.getNextId(), "Subtask 2");
-            st1.setStartDateTime(LocalDateTime.now().plusMinutes(10));
-            st1.setDuration(Duration.ofDays(1));
+            st1.setStartDateTime(LocalDateTime.now().plusHours(3));
+            st1.setDuration(Duration.ofHours(1));
             st2 = new SubTask(taskManager.getNextId(), "Subtask 1");
-            st2.setStartDateTime(LocalDateTime.now().minusMinutes(10));
-            st2.setDuration(Duration.ofDays(1));
+            st2.setStartDateTime(LocalDateTime.now().minusHours(3));
+            st2.setDuration(Duration.ofHours(1));
             // Задачи вне приоритизации
             t3 = new Task(taskManager.getNextId(), "Test task (no priority)");
-            t3.setDuration(Duration.ofDays(1));
+            t3.setDuration(Duration.ofHours(1));
             st3 = new SubTask(taskManager.getNextId(), "Subtask (no priority)");
             st3.setDuration(Duration.ofHours(1));
         }
