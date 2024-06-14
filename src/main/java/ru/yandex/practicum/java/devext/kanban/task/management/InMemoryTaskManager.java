@@ -42,6 +42,12 @@ public class InMemoryTaskManager implements TaskManager {
             if (overlap.isPresent())
                 throw new TimelineOverlapException("Задача " + t + " пересекается по времени выполнения с задачей "
                         + overlap.get());
+            Optional<SubTask> subTaskOverlap = subTasks.values().stream()
+                    .filter(st1 -> executionDateTimeOverlaps(st1, t))
+                    .findFirst();
+            if (subTaskOverlap.isPresent())
+                throw new TimelineOverlapException("Задача " + t + " пересекается по времени выполнения с подзадачей "
+                        + subTaskOverlap.get());
             tasks.put(t.getId(), t);
             if (t.getStartDateTime() != null)
                 prioritizedTasks.add(t);
@@ -59,12 +65,18 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addSubTask(SubTask st, Epic e) {
         if (st.getStatus() == Status.NEW) {
-            long overlapCount = subTasks.values().stream()
+            Optional<Task> taskOverlap = tasks.values().stream()
+                    .filter(t -> executionDateTimeOverlaps(t, st))
+                    .findFirst();
+            if (taskOverlap.isPresent())
+                throw new TimelineOverlapException("Подзадача " + st + " пересекается по времени выполнения с задачей "
+                        + taskOverlap.get());
+            Optional<SubTask> subTaskOverlap = subTasks.values().stream()
                     .filter(st1 -> executionDateTimeOverlaps(st1, st))
-                    .count();
-            if (overlapCount > 0)
-                throw new TimelineOverlapException("Подзадача " + st + " пересекается по времени выполнения с уже добавленными "
-                        + overlapCount + " подзадачами");
+                    .findFirst();
+            if (subTaskOverlap.isPresent())
+                throw new TimelineOverlapException("Подзадача " + st + " пересекается по времени выполнения с подзадачей "
+                        + subTaskOverlap.get());
             if (!epics.containsKey(e.getId()))
                 addEpic(e);
             st.setEpicId(e.getId());

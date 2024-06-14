@@ -9,6 +9,7 @@ import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import ru.yandex.practicum.java.devext.kanban.task.management.InMemoryTaskManager;
+import ru.yandex.practicum.java.devext.kanban.task.management.TimelineOverlapException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -331,7 +332,6 @@ class InMemoryTaskManagerTest extends BaseTest {
         private SubTask st1, st2, st3;
         private Epic e;
 
-
         @BeforeEach
         void beforeEach() {
             // Задачи для приоритизации
@@ -388,6 +388,42 @@ class InMemoryTaskManagerTest extends BaseTest {
                     () -> assertTrue(taskManager.getTasks().contains(t3)),
                     () -> assertTrue(taskManager.getSubTasks().contains(st3))
             );
+        }
+    }
+
+    @Nested
+    @DisplayName("Пересечение по сроку исполнения")
+    class ExecutionDateTimeOverlapTest {
+
+        private Task t1, t2;
+        private SubTask st1;
+        private Epic e;
+
+        @BeforeEach
+        void beforeEach() {
+            t1 = new Task(taskManager.getNextId(), "Test task 1");
+            t1.setStartDateTime(LocalDateTime.now());
+            t1.setDuration(Duration.ofHours(1));
+            st1 = new SubTask(taskManager.getNextId(), "Test subtask 1");
+            st1.setStartDateTime(t1.getStartDateTime().plusMinutes(10));
+            st1.setDuration(Duration.ofHours(1));
+            t2 = new Task(taskManager.getNextId(), "Test task 2");
+            t2.setStartDateTime(st1.getStartDateTime().plusMinutes(10));
+            t2.setDuration(Duration.ofHours(1));
+            e = new Epic(taskManager.getNextId(), "Test epic");
+            taskManager.addEpic(e);
+        }
+
+        @Test
+        void overlap1() {
+            taskManager.addTask(t1);
+            assertThrows(TimelineOverlapException.class, () -> taskManager.addSubTask(st1, e));
+        }
+
+        @Test
+        void overlap2() {
+            taskManager.addSubTask(st1, e);
+            assertThrows(TimelineOverlapException.class, () -> taskManager.addTask(t2));
         }
     }
 }
