@@ -13,7 +13,6 @@ import ru.yandex.practicum.java.devext.kanban.task.management.TimelineOverlapExc
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Менеджер задач in-memory")
@@ -43,12 +42,12 @@ class InMemoryTaskManagerTest extends BaseTest {
         @BeforeEach
         void beforeEach() {
             task = new Task(taskManager.getNextId(), "Test task");
-            task.setStartDateTime(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(10, 30)));
-            task.setDuration(Duration.ofDays(2));
+            task.setStartDateTime(LocalDateTime.now());
+            task.setDuration(Duration.ofHours(1));
             epic = new Epic(taskManager.getNextId(), "Test epic");
             subTask = new SubTask(taskManager.getNextId(), "Test subtask");
-            subTask.setStartDateTime(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(10, 30)));
-            subTask.setDuration(Duration.ofDays(1));
+            subTask.setStartDateTime(task.getEndDateTime().plusMinutes(10));
+            subTask.setDuration(Duration.ofHours(1));
             taskManager.addTask(task);
             taskManager.addEpic(epic);
             taskManager.addSubTask(subTask, epic);

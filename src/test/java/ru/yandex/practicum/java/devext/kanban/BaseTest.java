@@ -12,7 +12,7 @@ import java.util.List;
 public class BaseTest {
 
     protected void addEpicWithSubTasks(List<Task> refEpics, List<Task> refSubTasks, TaskManager tm, int epicNum, int subTasksPerEpic) {
-        LocalDateTime endDT = LocalDateTime.now();
+        LocalDateTime endDT = findMaxEndDateTime(tm);
         for (int i = 0; i < epicNum; i++) {
             Epic e = new Epic(tm.getNextId(), "Test epic " + (i + 1));
             refEpics.add(e);
@@ -29,7 +29,7 @@ public class BaseTest {
     }
 
     protected void addTasks(List<Task> refTasks, TaskManager tm, int tasksNum) {
-        LocalDateTime endDT = LocalDateTime.now();
+        LocalDateTime endDT = findMaxEndDateTime(tm);
         for (int i = 0; i < tasksNum; i++) {
             Task t = new Task(tm.getNextId(), "Test task " + (i + 1));
             t.setStartDateTime(endDT.plusMinutes(10));
@@ -50,5 +50,17 @@ public class BaseTest {
             tm.addSubTask(st, e);
             endDT = st.getEndDateTime();
         }
+    }
+
+    private LocalDateTime findMaxEndDateTime(TaskManager tm) {
+        LocalDateTime maxTaskEndDT = tm.getTasks().stream()
+                .map(Task::getEndDateTime)
+                .max(LocalDateTime::compareTo)
+                .orElse(LocalDateTime.now());
+        LocalDateTime maxSubTaskEndDT = tm.getSubTasks().stream()
+                .map(SubTask::getEndDateTime)
+                .max(LocalDateTime::compareTo)
+                .orElse(LocalDateTime.now());
+        return maxTaskEndDT.isBefore(maxSubTaskEndDT) ? maxSubTaskEndDT : maxTaskEndDT;
     }
 }

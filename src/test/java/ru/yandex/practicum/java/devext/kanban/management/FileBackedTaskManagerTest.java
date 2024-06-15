@@ -17,7 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static ru.yandex.practicum.java.devext.kanban.task.management.CommonDateTimeFormatter.ISO_LOCAL;
@@ -48,7 +47,6 @@ public class FileBackedTaskManagerTest extends BaseTest {
         private Epic epic;
         private String taskCsv, epicCsv;
         private List<Task> refSubTasks;
-        private static final int SUBTASKS_PER_EPIC = 3;
         private static final Path tmpBackupPath = Paths.get("src","test", "resources", "tmp_backup.csv");
 
         @BeforeEach
@@ -58,8 +56,8 @@ public class FileBackedTaskManagerTest extends BaseTest {
             // Простая задача
             task = new Task(taskManager.getNextId(), "Test task");
             task.setDescription("Description");
-            task.setStartDateTime(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(10, 30)));
-            task.setDuration(Duration.ofDays(2));
+            task.setStartDateTime(LocalDateTime.now().minusHours(2));
+            task.setDuration(Duration.ofHours(1));
             taskManager.addTask(task);
             taskCsv = getCsvString(task);
             // Эпик
