@@ -259,8 +259,7 @@ public class InMemoryTaskManager implements TaskManager {
         return idSeq.getAndIncrement();
     }
 
-    // Метод сделан публичным для того, чтобы не городить в тестах огороды с рефлексией
-    public final boolean executionDateTimeOverlaps(Task t1, Task t2) {
+    protected final boolean executionDateTimeOverlaps(Task t1, Task t2) {
         if (t1.getStartDateTime() != null
                 && t2.getStartDateTime() != null
                 && t1.getDuration() != null
