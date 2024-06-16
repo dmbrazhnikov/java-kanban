@@ -9,7 +9,7 @@ import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import ru.yandex.practicum.java.devext.kanban.task.management.InMemoryTaskManager;
-import ru.yandex.practicum.java.devext.kanban.task.management.TimelineOverlapException;
+import ru.yandex.practicum.java.devext.kanban.task.management.ExecutionDateTimeOverlapException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -414,15 +414,17 @@ class InMemoryTaskManagerTest extends BaseTest {
         }
 
         @Test
-        void overlap1() {
+        @DisplayName("Первая начинается раньше второй")
+        void firstStartsEarlierThanSecond() {
             taskManager.addTask(t1);
-            assertThrows(TimelineOverlapException.class, () -> taskManager.addSubTask(st1, e));
+            assertThrows(ExecutionDateTimeOverlapException.class, () -> taskManager.addSubTask(st1, e));
         }
 
         @Test
-        void overlap2() {
+        @DisplayName("Вторая начинается раньше первой")
+        void secondStartsEarlierThanFirst() {
             taskManager.addSubTask(st1, e);
-            assertThrows(TimelineOverlapException.class, () -> taskManager.addTask(t2));
+            assertThrows(ExecutionDateTimeOverlapException.class, () -> taskManager.addTask(t2));
         }
     }
 }

@@ -6,14 +6,13 @@ import ru.yandex.practicum.java.devext.kanban.task.Task;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.TreeSet;
 
 public interface TaskManager {
-    void addTask(Task t);
+    void addTask(Task task);
 
-    void addEpic(Epic e);
+    void addEpic(Epic epic);
 
-    void addSubTask(SubTask st, Epic e);
+    void addSubTask(SubTask subTask, Epic epic);
 
     List<Task> getTasks();
 
@@ -39,13 +38,13 @@ public interface TaskManager {
 
     SubTask getSubTaskById(Integer id);
 
-    void updateTask(Task updated);
+    void updateTask(Task updatedTask);
 
-    void updateEpic(Epic updated);
+    void updateEpic(Epic updatedEpic);
 
-    void updateSubTask(SubTask updated);
+    void updateSubTask(SubTask updatedSubTask);
 
-    List<SubTask> getSubTasksForEpic(Epic e);
+    List<SubTask> getSubTasksForEpic(Epic epic);
 
     List<Task> getHistory();
 

@@ -36,20 +36,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void addTask(Task t) {
-        super.addTask(t);
+    public void addTask(Task newTask) {
+        super.addTask(newTask);
         save();
     }
 
     @Override
-    public void addEpic(Epic e) {
-        super.addEpic(e);
+    public void addEpic(Epic newEpic) {
+        super.addEpic(newEpic);
         save();
     }
 
     @Override
-    public void addSubTask(SubTask st, Epic e) {
-        super.addSubTask(st, e);
+    public void addSubTask(SubTask newSubTask, Epic epic) {
+        super.addSubTask(newSubTask, epic);
         save();
     }
 
@@ -90,14 +90,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateTask(Task t) {
-        super.updateTask(t);
+    public void updateTask(Task updatedTask) {
+        super.updateTask(updatedTask);
         save();
     }
 
     @Override
-    public void updateEpic(Epic e) {
-        super.updateEpic(e);
+    public void updateEpic(Epic updatedEpic) {
+        super.updateEpic(updatedEpic);
         save();
     }
 
@@ -191,28 +191,28 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public String[] toCsvRecord(Task t) {
-        if (t instanceof SubTask st)
+    public String[] toCsvRecord(Task task) {
+        if (task instanceof SubTask st)
             return new String[] {
-                    String.valueOf(t.getId()),
-                    t.getClass().getSimpleName(),
-                    t.getName(),
-                    t.getStatus().name(),
-                    t.getDescription(),
+                    String.valueOf(task.getId()),
+                    task.getClass().getSimpleName(),
+                    task.getName(),
+                    task.getStatus().name(),
+                    task.getDescription(),
                     String.valueOf(st.getEpicId()),
-                    t.getStartDateTime().format(ISO_LOCAL.getDtf()),
-                    String.valueOf(t.getDuration().toMinutes())
+                    task.getStartDateTime().format(ISO_LOCAL.getDtf()),
+                    String.valueOf(task.getDuration().toMinutes())
             };
         else
             return new String[] {
-                    String.valueOf(t.getId()),
-                    t.getClass().getSimpleName(),
-                    t.getName(),
-                    t.getStatus().name(),
-                    t.getDescription(),
+                    String.valueOf(task.getId()),
+                    task.getClass().getSimpleName(),
+                    task.getName(),
+                    task.getStatus().name(),
+                    task.getDescription(),
                     null,
-                    t instanceof Epic ? null : t.getStartDateTime().format(ISO_LOCAL.getDtf()),
-                    t instanceof Epic ? null : String.valueOf(t.getDuration().toMinutes())
+                    task instanceof Epic ? null : task.getStartDateTime().format(ISO_LOCAL.getDtf()),
+                    task instanceof Epic ? null : String.valueOf(task.getDuration().toMinutes())
             };
     }
 }
