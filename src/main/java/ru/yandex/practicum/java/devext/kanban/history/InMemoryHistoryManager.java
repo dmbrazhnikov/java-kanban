@@ -5,7 +5,6 @@ import ru.yandex.practicum.java.devext.kanban.task.Task;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 
 
 public class InMemoryHistoryManager implements HistoryManager {
@@ -45,12 +44,10 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     public void clear() {
-        Node n;
-        for (Entry<Integer, Node> e : nodeByIdMap.entrySet()) {
-            n = e.getValue();
-            n.next = null;
-            n.prev = null;
-        }
+        nodeByIdMap.forEach((id, node) -> {
+            node.next = null;
+            node.prev = null;
+        });
         last = null;
         nodeByIdMap.clear();
     }

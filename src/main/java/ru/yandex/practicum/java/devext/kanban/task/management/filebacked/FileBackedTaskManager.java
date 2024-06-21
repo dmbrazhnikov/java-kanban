@@ -1,4 +1,4 @@
-package ru.yandex.practicum.java.devext.kanban.task.management;
+package ru.yandex.practicum.java.devext.kanban.task.management.filebacked;
 
 import com.opencsv.*;
 import com.opencsv.exceptions.CsvValidationException;
@@ -6,6 +6,7 @@ import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.Status;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
+import ru.yandex.practicum.java.devext.kanban.task.management.InMemoryTaskManager;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -13,15 +14,20 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import static ru.yandex.practicum.java.devext.kanban.task.management.CommonDateTimeFormatter.ISO_LOCAL;
 
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private final Path backupFilePath;
-    private static final String[] CSV_BACKUP_HEADER = {"id", "type", "name", "status", "description", "epic"};
+    private static final String[] CSV_BACKUP_HEADER = {
+            "id", "type", "name", "status", "description", "epicId", "startDateTime", "durationMinutes"
+    };
 
     public FileBackedTaskManager(Path backupFilePath) {
         super();
@@ -30,20 +36,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void addTask(Task t) {
-        super.addTask(t);
+    public void addTask(Task newTask) {
+        super.addTask(newTask);
         save();
     }
 
     @Override
-    public void addEpic(Epic e) {
-        super.addEpic(e);
+    public void addEpic(Epic newEpic) {
+        super.addEpic(newEpic);
         save();
     }
 
     @Override
-    public void addSubTask(SubTask st, Epic e) {
-        super.addSubTask(st, e);
+    public void addSubTask(SubTask newSubTask, Epic epic) {
+        super.addSubTask(newSubTask, epic);
         save();
     }
 
@@ -84,20 +90,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateTask(Task updated) {
-        super.updateTask(updated);
+    public void updateTask(Task updatedTask) {
+        super.updateTask(updatedTask);
         save();
     }
 
     @Override
-    public void updateEpic(Epic updated) {
-        super.updateEpic(updated);
+    public void updateEpic(Epic updatedEpic) {
+        super.updateEpic(updatedEpic);
         save();
     }
 
     @Override
-    public void updateSubTask(SubTask updated) {
-        super.updateSubTask(updated);
+    public void updateSubTask(SubTask st) {
+        super.updateSubTask(st);
         save();
     }
 
@@ -158,18 +164,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         st.setStatus(status);
                         st.setDescription(line[4]);
                         st.setEpicId(Integer.parseInt(line[5]));
+                        st.setStartDateTime(LocalDateTime.parse(line[6], ISO_LOCAL.getDtf()));
+                        st.setDuration(Duration.ofMinutes(Long.parseLong(line[7])));
                         subTasks.put(id, st);
                     } else {
                         Task t = new Task(id, line[2]);
                         t.setStatus(status);
                         t.setDescription(line[4]);
+                        t.setStartDateTime(LocalDateTime.parse(line[6], ISO_LOCAL.getDtf()));
+                        t.setDuration(Duration.ofMinutes(Long.parseLong(line[7])));
                         tasks.put(id, t);
                     }
                 }
-                for (SubTask st : subTasks.values()) {
+                subTasks.values().forEach(st -> {
                     Epic parentEpic = epics.get(st.getEpicId());
                     parentEpic.getSubTaskIds().add(st.getId());
-                }
+                });
                 idSeq = new AtomicInteger(maxId);
             } catch (FileNotFoundException e) {
                 throw new ManagerLoadException("File not found: " + backupPath);
@@ -181,24 +191,28 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public String[] toCsvRecord(Task t) {
-        if (t instanceof SubTask st)
+    public String[] toCsvRecord(Task task) {
+        if (task instanceof SubTask st)
             return new String[] {
-                    String.valueOf(t.getId()),
-                    t.getClass().getName(),
-                    t.getName(),
-                    t.getStatus().name(),
-                    t.getDescription(),
-                    String.valueOf(st.getEpicId())
+                    String.valueOf(task.getId()),
+                    task.getClass().getSimpleName(),
+                    task.getName(),
+                    task.getStatus().name(),
+                    task.getDescription(),
+                    String.valueOf(st.getEpicId()),
+                    task.getStartDateTime().format(ISO_LOCAL.getDtf()),
+                    String.valueOf(task.getDuration().toMinutes())
             };
         else
             return new String[] {
-                    String.valueOf(t.getId()),
-                    t.getClass().getName(),
-                    t.getName(),
-                    t.getStatus().name(),
-                    t.getDescription(),
-                    null
+                    String.valueOf(task.getId()),
+                    task.getClass().getSimpleName(),
+                    task.getName(),
+                    task.getStatus().name(),
+                    task.getDescription(),
+                    null,
+                    task instanceof Epic ? null : task.getStartDateTime().format(ISO_LOCAL.getDtf()),
+                    task instanceof Epic ? null : String.valueOf(task.getDuration().toMinutes())
             };
     }
 }

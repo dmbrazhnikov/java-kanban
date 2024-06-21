@@ -1,7 +1,8 @@
-id,type,name,status,description,epic
-1,Task,Task 1,NEW,Description task1,
-2,Epic,Epic 2,IN_PROGRESS,Description epic2,
-3,SubTask,Sub Task 2,IN_PROGRESS,Description sub task3,2
-4,Epic,Epic 4,NEW,Description epic4,
-5,Task,Task5,DONE,Description task5,
-6,SubTask,Sub Task 6,NEW,Description sub task 6,2
+id,type,name,status,description,epic,startDateTime,durationMinutes
+1,Task,Task 1,NEW,Description task1,,2024-06-12T09:00:00,2800
+2,Epic,Epic 2,IN_PROGRESS,Description epic2,,,
+3,SubTask,Sub Task 2,IN_PROGRESS,Description sub task3,2,2024-06-13T09:00:00,1440
+4,Epic,Epic 4,NEW,Description epic4,,,
+5,Task,Task5,DONE,Description task5,,2024-06-12T09:20:00,1440
+6,SubTask,Sub Task 6,NEW,Description sub task 6,2,2024-06-16T09:10:00,1400
+7,SubTask,Sub Task 7,NEW,Description sub task 7,2,2024-06-20T09:10:10,1500

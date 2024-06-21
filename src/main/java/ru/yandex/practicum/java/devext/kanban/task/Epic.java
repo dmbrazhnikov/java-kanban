@@ -1,15 +1,18 @@
 package ru.yandex.practicum.java.devext.kanban.task;
 
 import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-
 
 @Getter
 public class Epic extends Task {
 
     private final Set<Integer> subTaskIds;
+    @Setter
+    private LocalDateTime endDateTime;
 
     public Epic(int id, String name) {
         super(id, name);
@@ -22,6 +25,11 @@ public class Epic extends Task {
 
     public void unbindSubTask(SubTask subTask) {
         subTaskIds.remove(subTask.getId());
+    }
+
+    @Override
+    public LocalDateTime getEndDateTime() {
+        return endDateTime;
     }
 
     @Override

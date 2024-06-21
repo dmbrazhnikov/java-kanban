@@ -3,6 +3,8 @@ package ru.yandex.practicum.java.devext.kanban.task;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 
@@ -12,6 +14,10 @@ public class Task {
 
     protected final int id;
     @Setter
+    protected Duration duration;
+    @Setter
+    protected LocalDateTime startDateTime;
+    @Setter
     protected String name, description;
     @Setter
     protected Status status;
@@ -20,6 +26,10 @@ public class Task {
         this.id = id;
         this.name = name;
         status = Status.NEW;
+    }
+
+    public LocalDateTime getEndDateTime() {
+        return startDateTime.plus(duration);
     }
 
     @Override
