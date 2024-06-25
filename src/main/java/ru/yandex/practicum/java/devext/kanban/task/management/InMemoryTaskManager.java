@@ -5,7 +5,6 @@ import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.Status;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -176,28 +175,35 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getTaskById(Integer id) {
-        Task task = tasks.get(id);
+        Optional<Task> opt = Optional.ofNullable(tasks.get(id));
+        Task task = opt.orElseThrow(() -> new NotFoundException("Task with ID " + id + " is not created yet"));
         historyManager.add(task);
         return task;
     }
 
     @Override
     public Epic getEpicById(Integer id) {
-        Epic epic = epics.get(id);
+        Optional<Epic> opt = Optional.ofNullable(epics.get(id));
+        Epic epic = opt.orElseThrow(() -> new NotFoundException("Epic with ID " + id + " is not created yet"));
         historyManager.add(epic);
         return epic;
     }
 
     @Override
     public SubTask getSubTaskById(Integer id) {
-        SubTask subTask = subTasks.get(id);
+        Optional<SubTask> opt = Optional.ofNullable(subTasks.get(id));
+        SubTask subTask = opt.orElseThrow(() -> new NotFoundException("SubTask with ID " + id + " is not created yet"));
         historyManager.add(subTask);
         return subTask;
     }
 
     @Override
     public void updateTask(Task task) {
-        tasks.put(task.getId(), task);
+        int updatedId = task.getId();
+        if (subTasks.containsKey(updatedId))
+            tasks.put(task.getId(), task);
+        else
+            throw new NotFoundException("Task with ID " + updatedId + " is not created yet");
     }
 
     @Override
@@ -222,7 +228,7 @@ public class InMemoryTaskManager implements TaskManager {
             epics.put(updatedId, epic);
             setEpicTimeline(epic);
         } else
-            System.out.println("Ошибка: эпик ещё не создан");
+            throw new NotFoundException("Epic with ID " + updatedId + " is not created yet");
     }
 
     @Override
@@ -233,7 +239,7 @@ public class InMemoryTaskManager implements TaskManager {
             subTasks.put(updatedId, subTask);
             updateEpic(epic);
         } else
-            System.out.println("Ошибка: подзадача ещё не создана");
+            throw new NotFoundException("SubTask with ID " + updatedId + " is not created yet");
     }
 
     @Override
