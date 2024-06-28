@@ -76,8 +76,8 @@ public class InMemoryTaskManager implements TaskManager {
             if (subTaskOverlap.isPresent())
                 throw new ExecutionDateTimeOverlapException("Подзадача " + newSubTask + " пересекается по времени выполнения с подзадачей "
                         + subTaskOverlap.get());
-            if (!epics.containsKey(epic.getId()))
-                addEpic(epic);
+//            if (!epics.containsKey(epic.getId()))
+//                addEpic(epic);
             newSubTask.setEpicId(epic.getId());
             epic.bindSubTask(newSubTask);
             subTasks.put(newSubTask.getId(), newSubTask);
@@ -201,7 +201,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateTask(Task task) {
         // TODO Проверка на наложение сроков
         int updatedId = task.getId();
-        if (subTasks.containsKey(updatedId))
+        if (tasks.containsKey(updatedId))
             tasks.put(task.getId(), task);
         else
             throw new NotFoundException("Task with ID " + updatedId + " is not created yet");

@@ -2,14 +2,12 @@ package ru.yandex.practicum.java.devext.kanban.management;
 
 import org.junit.jupiter.api.*;
 import ru.yandex.practicum.java.devext.kanban.BaseTest;
-import ru.yandex.practicum.java.devext.kanban.task.management.Managers;
+import ru.yandex.practicum.java.devext.kanban.task.management.*;
 import ru.yandex.practicum.java.devext.kanban.task.Status;
-import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
-import ru.yandex.practicum.java.devext.kanban.task.management.InMemoryTaskManager;
-import ru.yandex.practicum.java.devext.kanban.task.management.ExecutionDateTimeOverlapException;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -76,7 +74,7 @@ class InMemoryTaskManagerTest extends BaseTest {
             void removeTask() {
                 taskManager.removeTask(task.getId());
                 assertAll(
-                        () -> assertNull(taskManager.getTaskById(task.getId())),
+                        () -> assertThrows(NotFoundException.class, () -> taskManager.getTaskById(task.getId())),
                         () -> assertEquals(1, taskManager.getEpics().size()),
                         () -> assertEquals(1, taskManager.getSubTasks().size())
                 );
@@ -107,7 +105,7 @@ class InMemoryTaskManagerTest extends BaseTest {
                 subTask.setStatus(Status.DONE);
                 taskManager.removeEpic(epic.getId());
                 assertAll(
-                        () -> assertNull(taskManager.getEpicById(epic.getId())),
+                        () -> assertThrows(NotFoundException.class, () -> taskManager.getEpicById(epic.getId())),
                         () -> assertEquals(1, taskManager.getTasks().size()),
                         () -> assertEquals(1, taskManager.getSubTasks().size())
                 );
@@ -141,7 +139,7 @@ class InMemoryTaskManagerTest extends BaseTest {
             void removeSubTask() {
                 taskManager.removeSubTask(subTask.getId());
                 assertAll(
-                        () -> assertNull(taskManager.getSubTaskById(subTask.getId())),
+                        () -> assertThrows(NotFoundException.class, () -> taskManager.getSubTaskById(subTask.getId())),
                         () -> assertEquals(1, taskManager.getTasks().size()),
                         () -> assertEquals(1, taskManager.getEpics().size())
                 );
@@ -162,6 +160,7 @@ class InMemoryTaskManagerTest extends BaseTest {
             refSubTaskIds = new HashSet<>();
             refSubTasks = new LinkedList<>();
             epic = new Epic(taskManager.getNextId(), "Test epic");
+            taskManager.addEpic(epic);
             addSubtasksForEpic(refSubTasks, taskManager, epic, 3);
             refSubTasks.forEach(st -> refSubTaskIds.add(st.getId()));
         }
