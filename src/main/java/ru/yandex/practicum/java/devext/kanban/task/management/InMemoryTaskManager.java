@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import static ru.yandex.practicum.java.devext.kanban.Managers.getDefaultHistory;
+import static ru.yandex.practicum.java.devext.kanban.task.management.Managers.getDefaultHistory;
 
 
 public class InMemoryTaskManager implements TaskManager {
@@ -199,6 +199,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
+        // TODO Проверка на наложение сроков
         int updatedId = task.getId();
         if (subTasks.containsKey(updatedId))
             tasks.put(task.getId(), task);
@@ -208,6 +209,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateEpic(Epic epic) {
+        // TODO Проверка на наложение сроков
         int updatedId = epic.getId();
         if (epics.containsKey(updatedId)) {
             Set<Integer> subTaskIds = epic.getSubTaskIds();
@@ -233,6 +235,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateSubTask(SubTask subTask) {
+        // TODO Проверка на наложение сроков
         int updatedId = subTask.getId();
         if (subTasks.containsKey(updatedId)) {
             Epic epic = epics.get(subTask.getEpicId());

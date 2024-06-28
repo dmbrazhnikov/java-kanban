@@ -1,12 +1,15 @@
 package ru.yandex.practicum.java.devext.kanban.rest;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public abstract class BaseHttpHandler implements HttpHandler {
 
@@ -15,7 +18,10 @@ public abstract class BaseHttpHandler implements HttpHandler {
 
     protected BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
-        gson = new Gson();
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(Duration.class, new DurationAdapter());
+        gsonBuilder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter());
+        gson = gsonBuilder.create();
     }
 
     protected void sendText(HttpExchange ex, String text) throws IOException {
@@ -26,18 +32,8 @@ public abstract class BaseHttpHandler implements HttpHandler {
         ex.close();
     }
 
-    protected void sendNotFound(HttpExchange ex) throws IOException {
-        ex.sendResponseHeaders(404, 0);
-        ex.close();
-    }
-
-    protected void sendHasOverlaps(HttpExchange ex) throws IOException {
-        ex.sendResponseHeaders(406, 0);
-        ex.close();
-    }
-
-    protected void sendBadRequest(HttpExchange ex) throws IOException {
-        ex.sendResponseHeaders(400, 0);
+    protected void sendEmptyResponse(HttpExchange ex, StatusCode statusCode) throws IOException {
+        ex.sendResponseHeaders(statusCode.value, 0);
         ex.close();
     }
 }

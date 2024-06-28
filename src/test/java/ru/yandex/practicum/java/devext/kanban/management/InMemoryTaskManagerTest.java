@@ -2,7 +2,7 @@ package ru.yandex.practicum.java.devext.kanban.management;
 
 import org.junit.jupiter.api.*;
 import ru.yandex.practicum.java.devext.kanban.BaseTest;
-import ru.yandex.practicum.java.devext.kanban.Managers;
+import ru.yandex.practicum.java.devext.kanban.task.management.Managers;
 import ru.yandex.practicum.java.devext.kanban.task.Status;
 import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;

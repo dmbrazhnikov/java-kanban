@@ -4,6 +4,8 @@ import com.sun.net.httpserver.HttpExchange;
 import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
 import java.io.IOException;
 
+import static ru.yandex.practicum.java.devext.kanban.rest.StatusCode.METHOD_NOT_ALLOWED;
+
 public class PrioritizedHandler extends BaseHttpHandler {
 
     public PrioritizedHandler(TaskManager taskManager) {
@@ -11,7 +13,11 @@ public class PrioritizedHandler extends BaseHttpHandler {
     }
 
     @Override
-    public void handle(HttpExchange httpExchange) throws IOException {
-
+    public void handle(HttpExchange ex) throws IOException {
+        RequestMethod method = RequestMethod.valueOf(ex.getRequestMethod());
+        if (method == RequestMethod.GET) {
+            sendText(ex, gson.toJson(taskManager.getPrioritizedTasks()));
+        } else
+            sendEmptyResponse(ex, METHOD_NOT_ALLOWED);
     }
 }
