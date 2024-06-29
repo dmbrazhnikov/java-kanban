@@ -33,20 +33,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void addTask(Task newTask) {
+    public void addTask(Task newTask) throws ExecutionDateTimeOverlapException {
         if (newTask.getStatus() == Status.NEW) {
-            Optional<Task> overlap = tasks.values().stream()
-                    .filter(task -> executionDateTimeOverlaps(task, newTask))
-                    .findFirst();
-            if (overlap.isPresent())
-                throw new ExecutionDateTimeOverlapException("Задача " + newTask + " пересекается по времени выполнения с задачей "
-                        + overlap.get());
-            Optional<SubTask> subTaskOverlap = subTasks.values().stream()
-                    .filter(subTask -> executionDateTimeOverlaps(subTask, newTask))
-                    .findFirst();
-            if (subTaskOverlap.isPresent())
-                throw new ExecutionDateTimeOverlapException("Задача " + newTask + " пересекается по времени выполнения с подзадачей "
-                        + subTaskOverlap.get());
+            checkTaskExecDateTimeOverlaps(newTask);
             tasks.put(newTask.getId(), newTask);
             if (newTask.getStartDateTime() != null)
                 prioritizedTasks.add(newTask);
@@ -62,22 +51,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void addSubTask(SubTask newSubTask, Epic epic) {
+    public void addSubTask(SubTask newSubTask, Epic epic) throws ExecutionDateTimeOverlapException {
         if (newSubTask.getStatus() == Status.NEW) {
-            Optional<Task> taskOverlap = tasks.values().stream()
-                    .filter(task -> executionDateTimeOverlaps(task, newSubTask))
-                    .findFirst();
-            if (taskOverlap.isPresent())
-                throw new ExecutionDateTimeOverlapException("Подзадача " + newSubTask + " пересекается по времени выполнения с задачей "
-                        + taskOverlap.get());
-            Optional<SubTask> subTaskOverlap = subTasks.values().stream()
-                    .filter(subTask -> executionDateTimeOverlaps(subTask, newSubTask))
-                    .findFirst();
-            if (subTaskOverlap.isPresent())
-                throw new ExecutionDateTimeOverlapException("Подзадача " + newSubTask + " пересекается по времени выполнения с подзадачей "
-                        + subTaskOverlap.get());
-//            if (!epics.containsKey(epic.getId()))
-//                addEpic(epic);
+            checkSubTaskExecDateTimeOverlaps(newSubTask);
             newSubTask.setEpicId(epic.getId());
             epic.bindSubTask(newSubTask);
             subTasks.put(newSubTask.getId(), newSubTask);
@@ -198,18 +174,17 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateTask(Task task) {
-        // TODO Проверка на наложение сроков
-        int updatedId = task.getId();
+    public void updateTask(Task updatedTask) throws ExecutionDateTimeOverlapException {
+        checkTaskExecDateTimeOverlaps(updatedTask);
+        int updatedId = updatedTask.getId();
         if (tasks.containsKey(updatedId))
-            tasks.put(task.getId(), task);
+            tasks.put(updatedTask.getId(), updatedTask);
         else
             throw new NotFoundException("Task with ID " + updatedId + " is not created yet");
     }
 
     @Override
     public void updateEpic(Epic epic) {
-        // TODO Проверка на наложение сроков
         int updatedId = epic.getId();
         if (epics.containsKey(updatedId)) {
             Set<Integer> subTaskIds = epic.getSubTaskIds();
@@ -234,12 +209,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateSubTask(SubTask subTask) {
-        // TODO Проверка на наложение сроков
-        int updatedId = subTask.getId();
+    public void updateSubTask(SubTask updatedSubTask) throws ExecutionDateTimeOverlapException {
+        checkSubTaskExecDateTimeOverlaps(updatedSubTask);
+        int updatedId = updatedSubTask.getId();
         if (subTasks.containsKey(updatedId)) {
-            Epic epic = epics.get(subTask.getEpicId());
-            subTasks.put(updatedId, subTask);
+            Epic epic = epics.get(updatedSubTask.getEpicId());
+            subTasks.put(updatedId, updatedSubTask);
             updateEpic(epic);
         } else
             throw new NotFoundException("SubTask with ID " + updatedId + " is not created yet");
@@ -276,6 +251,38 @@ public class InMemoryTaskManager implements TaskManager {
             return task1.getEndDateTime().isAfter(task2.getStartDateTime()) && task2.getEndDateTime().isAfter(task1.getStartDateTime());
         } else
             return false;
+    }
+
+    protected void checkTaskExecDateTimeOverlaps(Task taskToCheck) {
+        Optional<Task> overlap = tasks.values().stream()
+                .filter(task -> !task.equals(taskToCheck))
+                .filter(task -> executionDateTimeOverlaps(task, taskToCheck))
+                .findFirst();
+        if (overlap.isPresent())
+            throw new ExecutionDateTimeOverlapException("Задача " + taskToCheck + " пересекается по времени выполнения с задачей "
+                    + overlap.get());
+        Optional<SubTask> subTaskOverlap = subTasks.values().stream()
+                .filter(subTask -> executionDateTimeOverlaps(subTask, taskToCheck))
+                .findFirst();
+        if (subTaskOverlap.isPresent())
+            throw new ExecutionDateTimeOverlapException("Задача " + taskToCheck + " пересекается по времени выполнения с подзадачей "
+                    + subTaskOverlap.get());
+    }
+
+    protected void checkSubTaskExecDateTimeOverlaps(SubTask subTaskToCheck) {
+        Optional<Task> taskOverlap = tasks.values().stream()
+                .filter(task -> executionDateTimeOverlaps(task, subTaskToCheck))
+                .findFirst();
+        if (taskOverlap.isPresent())
+            throw new ExecutionDateTimeOverlapException("Подзадача " + subTaskToCheck + " пересекается по времени выполнения с задачей "
+                    + taskOverlap.get());
+        Optional<SubTask> subTaskOverlap = subTasks.values().stream()
+                .filter(subTask -> !subTask.equals(subTaskToCheck))
+                .filter(subTask -> executionDateTimeOverlaps(subTask, subTaskToCheck))
+                .findFirst();
+        if (subTaskOverlap.isPresent())
+            throw new ExecutionDateTimeOverlapException("Подзадача " + subTaskToCheck + " пересекается по времени выполнения с подзадачей "
+                    + subTaskOverlap.get());
     }
 
     private void setEpicTimeline(Epic epic) {
