@@ -14,6 +14,10 @@ public class SubTask extends Task {
         super(id, name);
     }
 
+    public SubTask(String name) {
+        super(name);
+    }
+
     @Override
     public String toString() {
         return "SubTask(id=" + this.getId() + ", duration=" + this.getDuration() + ", startDateTime=" +

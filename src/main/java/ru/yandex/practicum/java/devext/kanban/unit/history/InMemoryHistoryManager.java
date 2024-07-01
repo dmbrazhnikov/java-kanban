@@ -1,4 +1,4 @@
-package ru.yandex.practicum.java.devext.kanban.history;
+package ru.yandex.practicum.java.devext.kanban.unit.history;
 
 import lombok.Getter;
 import ru.yandex.practicum.java.devext.kanban.task.Task;

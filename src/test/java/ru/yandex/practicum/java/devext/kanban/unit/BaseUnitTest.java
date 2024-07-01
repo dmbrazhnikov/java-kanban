@@ -1,4 +1,4 @@
-package ru.yandex.practicum.java.devext.kanban;
+package ru.yandex.practicum.java.devext.kanban.unit;
 
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 
-public class BaseTest {
+public class BaseUnitTest {
 
     protected void addEpicWithSubTasks(List<Task> refEpics, List<Task> refSubTasks, TaskManager tm, int epicNum, int subTasksPerEpic) {
         LocalDateTime endDT = findMaxEndDateTime(tm);
