@@ -32,15 +32,17 @@ public class SubTaskHandler extends BaseHttpHandler {
                     switch (method) {
                         case GET -> {
                             List<SubTask> subTasks = taskManager.getSubTasks();
-                            sendText(ex, gson.toJson(subTasks));
+                            sendText(ex, gson.toJson(subTasks), OK);
                         }
                         case POST -> {
                             subTask = gson.fromJson(
                                     new String(ex.getRequestBody().readAllBytes(), UTF_8),
                                     SubTask.class
                             );
+                            if (subTask.getId() == -1)
+                                subTask.setId(taskManager.getNextId());
                             taskManager.addSubTask(subTask, taskManager.getEpicById(subTask.getEpicId()));
-                            sendEmptyResponse(ex, CREATED);
+                            sendText(ex, gson.toJson(subTask), CREATED);
                             log.info("Subtask successfully created:\n{}", subTask);
                         }
                         default -> sendEmptyResponse(ex, METHOD_NOT_ALLOWED);
@@ -51,7 +53,7 @@ public class SubTaskHandler extends BaseHttpHandler {
                     switch (method) {
                         case GET -> {
                             subTask = taskManager.getSubTaskById(subTaskId);
-                            sendText(ex, gson.toJson(subTask));
+                            sendText(ex, gson.toJson(subTask), OK);
                         }
                         case PUT -> {
                             subTask = gson.fromJson(

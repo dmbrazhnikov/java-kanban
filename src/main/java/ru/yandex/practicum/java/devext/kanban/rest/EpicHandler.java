@@ -34,15 +34,17 @@ public class EpicHandler extends BaseHttpHandler {
                     switch (method) {
                         case GET -> {
                             List<Epic> epics = taskManager.getEpics();
-                            sendText(ex, gson.toJson(epics));
+                            sendText(ex, gson.toJson(epics), OK);
                         }
                         case POST -> {
                             epic = gson.fromJson(
                                     new String(ex.getRequestBody().readAllBytes(), UTF_8),
                                     Epic.class
                             );
+                            if (epic.getId() == -1)
+                                epic.setId(taskManager.getNextId());
                             taskManager.addEpic(epic);
-                            sendEmptyResponse(ex, CREATED);
+                            sendText(ex, gson.toJson(epic), CREATED);
                             log.info("Epic successfully created:\n{}", epic);
                         }
                         default -> sendEmptyResponse(ex, METHOD_NOT_ALLOWED);
@@ -53,7 +55,7 @@ public class EpicHandler extends BaseHttpHandler {
                     switch (method) {
                         case GET -> {
                             epic = taskManager.getEpicById(epicId);
-                            sendText(ex, gson.toJson(epic));
+                            sendText(ex, gson.toJson(epic), OK);
                         }
                         case DELETE -> {
                             epic = gson.fromJson(
@@ -74,7 +76,7 @@ public class EpicHandler extends BaseHttpHandler {
                         List<SubTask> subTasks = taskManager.getSubTasks().stream()
                                 .filter(st -> epic.getSubTaskIds().contains(st.getId()))
                                 .toList();
-                        sendText(ex, gson.toJson(subTasks));
+                        sendText(ex, gson.toJson(subTasks), OK);
                     } else
                         sendEmptyResponse(ex, BAD_REQUEST);
                 }

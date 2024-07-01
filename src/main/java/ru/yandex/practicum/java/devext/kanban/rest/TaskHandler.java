@@ -32,13 +32,15 @@ public class TaskHandler extends BaseHttpHandler {
                     switch (method) {
                         case GET -> {
                             List<Task> tasks = taskManager.getTasks();
-                            sendText(ex, gson.toJson(tasks));
+                            sendText(ex, gson.toJson(tasks), OK);
                         }
                         case POST -> {
                             String rqBody = new String(ex.getRequestBody().readAllBytes(), UTF_8);
                             task = gson.fromJson(rqBody, Task.class);
+                            if (task.getId() == -1)
+                                task.setId(taskManager.getNextId());
                             taskManager.addTask(task);
-                            sendEmptyResponse(ex, CREATED);
+                            sendText(ex, gson.toJson(task), CREATED);
                             log.info("Task successfully created:\n{}", task);
                         }
                         default -> sendEmptyResponse(ex, METHOD_NOT_ALLOWED);
@@ -49,7 +51,7 @@ public class TaskHandler extends BaseHttpHandler {
                     switch (method) {
                         case GET -> {
                             task = taskManager.getTaskById(taskId);
-                            sendText(ex, gson.toJson(task));
+                            sendText(ex, gson.toJson(task), OK);
                         }
                         case PUT -> {
                             task = gson.fromJson(

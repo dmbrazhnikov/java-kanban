@@ -19,6 +19,11 @@ public class Epic extends Task {
         subTaskIds = new HashSet<>();
     }
 
+    public Epic(String name) {
+        super(name);
+        subTaskIds = new HashSet<>();
+    }
+
     public void bindSubTask(SubTask subTask) {
         subTaskIds.add(subTask.getId());
     }

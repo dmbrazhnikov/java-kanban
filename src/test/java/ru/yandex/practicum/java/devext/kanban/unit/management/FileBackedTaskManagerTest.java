@@ -1,9 +1,9 @@
-package ru.yandex.practicum.java.devext.kanban.management;
+package ru.yandex.practicum.java.devext.kanban.unit.management;
 
 import org.junit.jupiter.api.*;
-import ru.yandex.practicum.java.devext.kanban.BaseTest;
+import ru.yandex.practicum.java.devext.kanban.unit.BaseUnitTest;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
-import ru.yandex.practicum.java.devext.kanban.task.Status;
+import ru.yandex.practicum.java.devext.kanban.task.TaskStatus;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import ru.yandex.practicum.java.devext.kanban.task.management.NotFoundException;
@@ -24,7 +24,7 @@ import static ru.yandex.practicum.java.devext.kanban.task.management.CommonDateT
 
 
 @DisplayName("Менеджер задач in-memory с сохранением данных в файл")
-public class FileBackedTaskManagerTest extends BaseTest {
+public class FileBackedTaskManagerTest extends BaseUnitTest {
 
     private FileBackedTaskManager taskManager;
 
@@ -143,7 +143,7 @@ public class FileBackedTaskManagerTest extends BaseTest {
             @Test
             @DisplayName("Удаление")
             void removeEpic() throws IOException {
-                refSubTasks.forEach(st -> st.setStatus(Status.DONE));
+                refSubTasks.forEach(st -> st.setStatus(TaskStatus.DONE));
                 taskManager.removeEpic(epic.getId());
                 String backupContent = Files.readString(tmpBackupPath);
                 assertAll(

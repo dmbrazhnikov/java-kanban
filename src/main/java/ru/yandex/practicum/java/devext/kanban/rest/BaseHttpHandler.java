@@ -19,15 +19,17 @@ public abstract class BaseHttpHandler implements HttpHandler {
     protected BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
         GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.registerTypeAdapter(Duration.class, new DurationAdapter());
-        gsonBuilder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter());
+        gsonBuilder
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .serializeNulls();
         gson = gsonBuilder.create();
     }
 
-    protected void sendText(HttpExchange ex, String text) throws IOException {
+    protected void sendText(HttpExchange ex, String text, StatusCode rCode) throws IOException {
         byte[] resp = text.getBytes(StandardCharsets.UTF_8);
         ex.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
-        ex.sendResponseHeaders(200, resp.length);
+        ex.sendResponseHeaders(rCode.value, resp.length);
         ex.getResponseBody().write(resp);
         ex.close();
     }

@@ -1,8 +1,8 @@
 package ru.yandex.practicum.java.devext.kanban.task.management;
 
-import ru.yandex.practicum.java.devext.kanban.history.HistoryManager;
+import ru.yandex.practicum.java.devext.kanban.unit.history.HistoryManager;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
-import ru.yandex.practicum.java.devext.kanban.task.Status;
+import ru.yandex.practicum.java.devext.kanban.task.TaskStatus;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import java.time.Duration;
@@ -34,7 +34,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void addTask(Task newTask) throws ExecutionDateTimeOverlapException {
-        if (newTask.getStatus() == Status.NEW) {
+        if (newTask.getStatus() == TaskStatus.NEW) {
             checkTaskExecDateTimeOverlaps(newTask);
             tasks.put(newTask.getId(), newTask);
             if (newTask.getStartDateTime() != null)
@@ -44,15 +44,15 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void addEpic(Epic newEpic) {
-        if (newEpic.getStatus() == Status.NEW)
+        if (newEpic.getStatus() == TaskStatus.NEW) {
             epics.put(newEpic.getId(), newEpic);
-        else
+        } else
             throw new RuntimeException("Добавить можно только новый эпик");
     }
 
     @Override
     public void addSubTask(SubTask newSubTask, Epic epic) throws ExecutionDateTimeOverlapException {
-        if (newSubTask.getStatus() == Status.NEW) {
+        if (newSubTask.getStatus() == TaskStatus.NEW) {
             checkSubTaskExecDateTimeOverlaps(newSubTask);
             newSubTask.setEpicId(epic.getId());
             epic.bindSubTask(newSubTask);
@@ -118,7 +118,7 @@ public class InMemoryTaskManager implements TaskManager {
             Set<Integer> subtaskIds = epics.get(id).getSubTaskIds();
             int doneCounter = 0;
             for (int stId : subtaskIds)
-                if (subTasks.get(stId).getStatus() == Status.DONE)
+                if (subTasks.get(stId).getStatus() == TaskStatus.DONE)
                     doneCounter++;
             if (subtaskIds.isEmpty() || subtaskIds.size() == doneCounter) {
                 historyManager.remove(epics.get(id));
@@ -141,10 +141,10 @@ public class InMemoryTaskManager implements TaskManager {
             int doneCounter = 0;
             Set<Integer> subtaskIds = epic.getSubTaskIds();
             for (int stId : subtaskIds)
-                if (subTasks.get(stId).getStatus() == Status.DONE)
+                if (subTasks.get(stId).getStatus() == TaskStatus.DONE)
                     doneCounter++;
             if (subtaskIds.size() == doneCounter)
-                epic.setStatus(Status.DONE);
+                epic.setStatus(TaskStatus.DONE);
         } else
             System.out.println("Ошибка: подзадача с ID " + id + " не существует");
     }
@@ -196,11 +196,11 @@ public class InMemoryTaskManager implements TaskManager {
                     case DONE -> doneCounter++;
                 }
                 if (!subTaskIds.isEmpty() && subTaskIds.size() == newCounter)
-                    epic.setStatus(Status.NEW);
+                    epic.setStatus(TaskStatus.NEW);
                 else if (!subTaskIds.isEmpty() && subTaskIds.size() == doneCounter)
-                    epic.setStatus(Status.DONE);
+                    epic.setStatus(TaskStatus.DONE);
                 else
-                    epic.setStatus(Status.IN_PROGRESS);
+                    epic.setStatus(TaskStatus.IN_PROGRESS);
             }
             epics.put(updatedId, epic);
             setEpicTimeline(epic);
