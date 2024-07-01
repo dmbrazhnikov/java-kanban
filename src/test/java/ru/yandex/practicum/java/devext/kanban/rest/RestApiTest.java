@@ -8,8 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import ru.yandex.practicum.java.devext.kanban.HttpTaskServer;
 import ru.yandex.practicum.java.devext.kanban.task.*;
-import ru.yandex.practicum.java.devext.kanban.task.management.Managers;
-import ru.yandex.practicum.java.devext.kanban.task.management.TaskManager;
+
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.IOException;
 import java.net.URI;
@@ -30,6 +29,7 @@ public class RestApiTest {
     private static final String baseUrl = "http://localhost:8080";
     private static HttpClient client;
     private static final HttpResponse.BodyHandler<String> stringBodyHandler = HttpResponse.BodyHandlers.ofString();
+    HttpResponse.BodyHandler<Void> voidBodyHandler = HttpResponse.BodyHandlers.discarding();
 
     @BeforeAll
     static void beforeAll() {
@@ -43,7 +43,6 @@ public class RestApiTest {
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .serializeNulls();
         gson = gsonBuilder.create();
-        taskManager = Managers.getDefault();
     }
 
     @BeforeEach
@@ -66,7 +65,7 @@ public class RestApiTest {
     @DisplayName("Добавление всех видов задач")
     @Description("Эти тесты должны быть выполнены в первую очередь, поскольку это фундамент для всех остальных")
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-    class addTasks {
+    class Add {
 
         @Test
         @Order(1)
@@ -192,7 +191,7 @@ public class RestApiTest {
                     .header("Accept", "application/json")
                     .header("Content-Type", "application/json")
                     .build();
-            HttpResponse<String> response = client.send(request, stringBodyHandler);
+            HttpResponse<Void> response = client.send(request, voidBodyHandler);
             assertEquals(201, response.statusCode());
         }
 
@@ -209,7 +208,7 @@ public class RestApiTest {
                     .header("Accept", "application/json")
                     .header("Content-Type", "application/json")
                     .build();
-            HttpResponse<String> response = client.send(request, stringBodyHandler);
+            HttpResponse<Void> response = client.send(request, voidBodyHandler);
             assertEquals(201, response.statusCode());
         }
 
@@ -245,6 +244,18 @@ public class RestApiTest {
                     () -> assertEquals(200, testRs.statusCode()),
                     () -> assertEquals(refTasks, actualTasks)
             );
+        }
+
+        @Test
+        @Order(5)
+        @DisplayName("Удаление")
+        void remove() throws IOException, InterruptedException {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .DELETE()
+                    .uri(URI.create(baseUrl + "/tasks/" + baseTask.getId()))
+                    .build();
+            HttpResponse<Void> response = client.send(request, voidBodyHandler);
+            assertEquals(200, response.statusCode());
         }
     }
 
@@ -309,6 +320,18 @@ public class RestApiTest {
                     () -> assertEquals(refEpics, actualTasks)
             );
         }
+
+        @Test
+        @Order(3)
+        @DisplayName("Удаление")
+        void remove() throws IOException, InterruptedException {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .DELETE()
+                    .uri(URI.create(baseUrl + "/epics/" + baseEpic.getId()))
+                    .build();
+            HttpResponse<Void> response = client.send(request, voidBodyHandler);
+            assertEquals(200, response.statusCode());
+        }
     }
 
 
@@ -365,7 +388,7 @@ public class RestApiTest {
                     .header("Accept", "application/json")
                     .header("Content-Type", "application/json")
                     .build();
-            HttpResponse<String> response = client.send(request, stringBodyHandler);
+            HttpResponse<Void> response = client.send(request, voidBodyHandler);
             assertEquals(201, response.statusCode());
         }
 
@@ -382,7 +405,7 @@ public class RestApiTest {
                     .header("Accept", "application/json")
                     .header("Content-Type", "application/json")
                     .build();
-            HttpResponse<String> response = client.send(request, stringBodyHandler);
+            HttpResponse<Void> response = client.send(request, voidBodyHandler);
             assertEquals(201, response.statusCode());
         }
 
@@ -419,6 +442,18 @@ public class RestApiTest {
                     () -> assertEquals(refSubTasks, actualSubTasks)
             );
         }
+
+        @Test
+        @Order(5)
+        @DisplayName("Удаление")
+        void remove() throws IOException, InterruptedException {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .DELETE()
+                    .uri(URI.create(baseUrl + "/subtasks/" + baseSubTask.getId()))
+                    .build();
+            HttpResponse<Void> response = client.send(request, voidBodyHandler);
+            assertEquals(200, response.statusCode());
+        }
     }
 
     @ParameterizedTest
@@ -430,7 +465,7 @@ public class RestApiTest {
                 .uri(URI.create(baseUrl + taskType + "/" + 99999))
                 .header("Accept", "application/json")
                 .build();
-        HttpResponse<String> response = client.send(request, stringBodyHandler);
+        HttpResponse<Void> response = client.send(request, voidBodyHandler);
         assertEquals(404, response.statusCode());
     }
 

@@ -58,13 +58,10 @@ public class EpicHandler extends BaseHttpHandler {
                             sendText(ex, gson.toJson(epic), OK);
                         }
                         case DELETE -> {
-                            epic = gson.fromJson(
-                                    new String(ex.getRequestBody().readAllBytes(), UTF_8),
-                                    Epic.class
-                            );
-                            taskManager.removeEpic(epic.getId());
+                            Epic backup = taskManager.getEpicById(epicId);
+                            taskManager.removeEpic(epicId);
                             sendEmptyResponse(ex, OK);
-                            log.info("Epic successfully updated:\n{}", epic);
+                            log.info("Epic successfully updated:\n{}", backup);
                         }
                         default -> sendEmptyResponse(ex, METHOD_NOT_ALLOWED);
                     }

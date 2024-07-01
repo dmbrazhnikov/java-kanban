@@ -65,13 +65,10 @@ public class SubTaskHandler extends BaseHttpHandler {
                             log.info("Subtask successfully updated:\n{}", subTask);
                         }
                         case DELETE -> {
-                            subTask = gson.fromJson(
-                                    new String(ex.getRequestBody().readAllBytes(), UTF_8),
-                                    SubTask.class
-                            );
-                            taskManager.removeSubTask(subTask.getId());
+                            SubTask backup = taskManager.getSubTaskById(subTaskId);
+                            taskManager.removeSubTask(subTaskId);
                             sendEmptyResponse(ex, OK);
-                            log.info("Subtask successfully removed:\n{}", subTask);
+                            log.info("Subtask successfully removed:\n{}", backup);
                         }
                         default -> sendEmptyResponse(ex, METHOD_NOT_ALLOWED);
                     }

@@ -63,13 +63,10 @@ public class TaskHandler extends BaseHttpHandler {
                             log.info("Task successfully updated:\n{}", task);
                         }
                         case DELETE -> {
-                            task = gson.fromJson(
-                                    new String(ex.getRequestBody().readAllBytes(), UTF_8),
-                                    Task.class
-                            );
-                            taskManager.removeTask(task.getId());
+                            Task backup = taskManager.getTaskById(taskId);
+                            taskManager.removeTask(taskId);
                             sendEmptyResponse(ex, OK);
-                            log.info("Task successfully removed:\n{}", task);
+                            log.info("Task successfully removed:\n{}", backup);
                         }
                         default -> sendEmptyResponse(ex, METHOD_NOT_ALLOWED);
                     }
