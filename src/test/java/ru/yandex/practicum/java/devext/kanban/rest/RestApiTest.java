@@ -29,7 +29,7 @@ public class RestApiTest {
     private static final String baseUrl = "http://localhost:8080";
     private static HttpClient client;
     private static final HttpResponse.BodyHandler<String> stringBodyHandler = HttpResponse.BodyHandlers.ofString();
-    HttpResponse.BodyHandler<Void> voidBodyHandler = HttpResponse.BodyHandlers.discarding();
+    private static final HttpResponse.BodyHandler<Void> voidBodyHandler = HttpResponse.BodyHandlers.discarding();
 
     @BeforeAll
     static void beforeAll() {
@@ -59,6 +59,19 @@ public class RestApiTest {
         client.send(request, HttpResponse.BodyHandlers.ofPublisher());
     }
 
+    @ParameterizedTest
+    @DisplayName("Запрос несуществующих")
+    @ValueSource(strings = {"/tasks", "/subtasks", "/epics"})
+    void requestNonExistent(String taskType) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .GET()
+                .uri(URI.create(baseUrl + taskType + "/" + 99999))
+                .header("Accept", "application/json")
+                .build();
+        HttpResponse<Void> response = client.send(request, voidBodyHandler);
+        assertEquals(404, response.statusCode());
+    }
+
 
     @Nested
     @Order(1)
@@ -74,9 +87,8 @@ public class RestApiTest {
             Task task = new Task("Test task");
             task.setDuration(Duration.ofHours(1));
             task.setDescription("Description");
-            String taskJson = gson.toJson(task);
             HttpRequest request = HttpRequest.newBuilder()
-                    .POST(HttpRequest.BodyPublishers.ofString(taskJson))
+                    .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(task)))
                     .uri(URI.create(baseUrl + "/tasks"))
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
@@ -256,6 +268,22 @@ public class RestApiTest {
                     .build();
             HttpResponse<Void> response = client.send(request, voidBodyHandler);
             assertEquals(200, response.statusCode());
+        }
+
+        @Test
+        @DisplayName("Добавление непересекающейся")
+        void addOverlapping() throws IOException, InterruptedException {
+            Task overlappingTask = new Task("Overlapping task");
+            overlappingTask.setStartDateTime(baseTask.getStartDateTime().plusMinutes(30));
+            overlappingTask.setDuration(Duration.ofHours(1));
+            HttpRequest request = HttpRequest.newBuilder()
+                    .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(overlappingTask)))
+                    .uri(URI.create(baseUrl + "/tasks"))
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .build();
+            HttpResponse<Void> response = client.send(request, voidBodyHandler);
+            assertEquals(406, response.statusCode());
         }
     }
 
@@ -454,19 +482,22 @@ public class RestApiTest {
             HttpResponse<Void> response = client.send(request, voidBodyHandler);
             assertEquals(200, response.statusCode());
         }
-    }
 
-    @ParameterizedTest
-    @DisplayName("Запрос несуществующих")
-    @ValueSource(strings = {"/tasks", "/subtasks", "/epics"})
-    void requestNonExistent(String taskType) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .GET()
-                .uri(URI.create(baseUrl + taskType + "/" + 99999))
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse<Void> response = client.send(request, voidBodyHandler);
-        assertEquals(404, response.statusCode());
+        @Test
+        @DisplayName("Добавление пересекающейся")
+        void addOverlapping() throws IOException, InterruptedException {
+            SubTask overlappingSubTask = new SubTask("Overlapping subtask");
+            overlappingSubTask.setStartDateTime(baseSubTask.getStartDateTime().plusMinutes(30));
+            overlappingSubTask.setDuration(Duration.ofHours(1));
+            HttpRequest request = HttpRequest.newBuilder()
+                    .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(overlappingSubTask)))
+                    .uri(URI.create(baseUrl + "/subtasks"))
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .build();
+            HttpResponse<Void> response = client.send(request, voidBodyHandler);
+            assertEquals(406, response.statusCode());
+        }
     }
 
     private Epic addBaseEpic() throws IOException, InterruptedException {
