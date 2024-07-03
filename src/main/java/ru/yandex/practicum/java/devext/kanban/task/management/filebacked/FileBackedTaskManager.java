@@ -3,7 +3,7 @@ package ru.yandex.practicum.java.devext.kanban.task.management.filebacked;
 import com.opencsv.*;
 import com.opencsv.exceptions.CsvValidationException;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
-import ru.yandex.practicum.java.devext.kanban.task.Status;
+import ru.yandex.practicum.java.devext.kanban.task.TaskStatus;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import ru.yandex.practicum.java.devext.kanban.task.management.InMemoryTaskManager;
@@ -153,7 +153,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     if (id > maxId)
                         maxId = id;
                     String className = line[1];
-                    Status status = Status.valueOf(line[3]);
+                    TaskStatus status = TaskStatus.valueOf(line[3]);
                     if (className.equals("Epic")) {
                         Epic e = new Epic(id, line[2]);
                         e.setStatus(status);

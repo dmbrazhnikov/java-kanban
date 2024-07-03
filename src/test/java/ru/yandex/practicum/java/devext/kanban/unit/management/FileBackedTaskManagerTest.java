@@ -1,11 +1,12 @@
-package ru.yandex.practicum.java.devext.kanban.management;
+package ru.yandex.practicum.java.devext.kanban.unit.management;
 
 import org.junit.jupiter.api.*;
-import ru.yandex.practicum.java.devext.kanban.BaseTest;
+import ru.yandex.practicum.java.devext.kanban.unit.BaseUnitTest;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
-import ru.yandex.practicum.java.devext.kanban.task.Status;
+import ru.yandex.practicum.java.devext.kanban.task.TaskStatus;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
+import ru.yandex.practicum.java.devext.kanban.task.management.NotFoundException;
 import ru.yandex.practicum.java.devext.kanban.task.management.filebacked.FileBackedTaskManager;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,7 +24,7 @@ import static ru.yandex.practicum.java.devext.kanban.task.management.CommonDateT
 
 
 @DisplayName("Менеджер задач in-memory с сохранением данных в файл")
-public class FileBackedTaskManagerTest extends BaseTest {
+public class FileBackedTaskManagerTest extends BaseUnitTest {
 
     private FileBackedTaskManager taskManager;
 
@@ -112,7 +113,7 @@ public class FileBackedTaskManagerTest extends BaseTest {
                 taskManager.removeTask(task.getId());
                 String backupContent = Files.readString(tmpBackupPath);
                 assertAll(
-                        () -> assertNull(taskManager.getTaskById(task.getId())),
+                        () -> assertThrows(NotFoundException.class, () -> taskManager.getTaskById(task.getId())),
                         () -> assertEquals(1, taskManager.getEpics().size()),
                         () -> assertEquals(refSubTasks.size(), taskManager.getSubTasks().size()),
                         () -> assertTrue(Files.exists(tmpBackupPath)),
@@ -142,11 +143,11 @@ public class FileBackedTaskManagerTest extends BaseTest {
             @Test
             @DisplayName("Удаление")
             void removeEpic() throws IOException {
-                refSubTasks.forEach(st -> st.setStatus(Status.DONE));
+                refSubTasks.forEach(st -> st.setStatus(TaskStatus.DONE));
                 taskManager.removeEpic(epic.getId());
                 String backupContent = Files.readString(tmpBackupPath);
                 assertAll(
-                        () -> assertNull(taskManager.getEpicById(epic.getId())),
+                        () -> assertThrows(NotFoundException.class, () -> taskManager.getEpicById(epic.getId())),
                         () -> assertEquals(1, taskManager.getTasks().size()),
                         () -> assertEquals(refSubTasks.size(), taskManager.getSubTasks().size()),
                         () -> assertTrue(Files.exists(tmpBackupPath)),
@@ -182,7 +183,7 @@ public class FileBackedTaskManagerTest extends BaseTest {
                 String backupContent = Files.readString(tmpBackupPath),
                         subTaskCsv = getCsvString(st);
                 assertAll(
-                        () -> assertNull(taskManager.getSubTaskById(st.getId())),
+                        () -> assertThrows(NotFoundException.class, () -> taskManager.getSubTaskById(st.getId())),
                         () -> assertEquals(1, taskManager.getTasks().size()),
                         () -> assertEquals(1, taskManager.getEpics().size()),
                         () -> assertTrue(Files.exists(tmpBackupPath)),

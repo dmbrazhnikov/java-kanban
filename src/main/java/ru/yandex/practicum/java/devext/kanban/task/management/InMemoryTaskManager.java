@@ -1,18 +1,17 @@
 package ru.yandex.practicum.java.devext.kanban.task.management;
 
-import ru.yandex.practicum.java.devext.kanban.history.HistoryManager;
+import ru.yandex.practicum.java.devext.kanban.unit.history.HistoryManager;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
-import ru.yandex.practicum.java.devext.kanban.task.Status;
+import ru.yandex.practicum.java.devext.kanban.task.TaskStatus;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import static ru.yandex.practicum.java.devext.kanban.Managers.getDefaultHistory;
+import static ru.yandex.practicum.java.devext.kanban.task.management.Managers.getDefaultHistory;
 
 
 public class InMemoryTaskManager implements TaskManager {
@@ -34,20 +33,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void addTask(Task newTask) {
-        if (newTask.getStatus() == Status.NEW) {
-            Optional<Task> overlap = tasks.values().stream()
-                    .filter(task -> executionDateTimeOverlaps(task, newTask))
-                    .findFirst();
-            if (overlap.isPresent())
-                throw new ExecutionDateTimeOverlapException("Задача " + newTask + " пересекается по времени выполнения с задачей "
-                        + overlap.get());
-            Optional<SubTask> subTaskOverlap = subTasks.values().stream()
-                    .filter(subTask -> executionDateTimeOverlaps(subTask, newTask))
-                    .findFirst();
-            if (subTaskOverlap.isPresent())
-                throw new ExecutionDateTimeOverlapException("Задача " + newTask + " пересекается по времени выполнения с подзадачей "
-                        + subTaskOverlap.get());
+    public void addTask(Task newTask) throws ExecutionDateTimeOverlapException {
+        if (newTask.getStatus() == TaskStatus.NEW) {
+            checkTaskExecDateTimeOverlaps(newTask);
             tasks.put(newTask.getId(), newTask);
             if (newTask.getStartDateTime() != null)
                 prioritizedTasks.add(newTask);
@@ -56,29 +44,16 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void addEpic(Epic newEpic) {
-        if (newEpic.getStatus() == Status.NEW)
+        if (newEpic.getStatus() == TaskStatus.NEW) {
             epics.put(newEpic.getId(), newEpic);
-        else
+        } else
             throw new RuntimeException("Добавить можно только новый эпик");
     }
 
     @Override
-    public void addSubTask(SubTask newSubTask, Epic epic) {
-        if (newSubTask.getStatus() == Status.NEW) {
-            Optional<Task> taskOverlap = tasks.values().stream()
-                    .filter(task -> executionDateTimeOverlaps(task, newSubTask))
-                    .findFirst();
-            if (taskOverlap.isPresent())
-                throw new ExecutionDateTimeOverlapException("Подзадача " + newSubTask + " пересекается по времени выполнения с задачей "
-                        + taskOverlap.get());
-            Optional<SubTask> subTaskOverlap = subTasks.values().stream()
-                    .filter(subTask -> executionDateTimeOverlaps(subTask, newSubTask))
-                    .findFirst();
-            if (subTaskOverlap.isPresent())
-                throw new ExecutionDateTimeOverlapException("Подзадача " + newSubTask + " пересекается по времени выполнения с подзадачей "
-                        + subTaskOverlap.get());
-            if (!epics.containsKey(epic.getId()))
-                addEpic(epic);
+    public void addSubTask(SubTask newSubTask, Epic epic) throws ExecutionDateTimeOverlapException {
+        if (newSubTask.getStatus() == TaskStatus.NEW) {
+            checkSubTaskExecDateTimeOverlaps(newSubTask);
             newSubTask.setEpicId(epic.getId());
             epic.bindSubTask(newSubTask);
             subTasks.put(newSubTask.getId(), newSubTask);
@@ -143,7 +118,7 @@ public class InMemoryTaskManager implements TaskManager {
             Set<Integer> subtaskIds = epics.get(id).getSubTaskIds();
             int doneCounter = 0;
             for (int stId : subtaskIds)
-                if (subTasks.get(stId).getStatus() == Status.DONE)
+                if (subTasks.get(stId).getStatus() == TaskStatus.DONE)
                     doneCounter++;
             if (subtaskIds.isEmpty() || subtaskIds.size() == doneCounter) {
                 historyManager.remove(epics.get(id));
@@ -166,38 +141,46 @@ public class InMemoryTaskManager implements TaskManager {
             int doneCounter = 0;
             Set<Integer> subtaskIds = epic.getSubTaskIds();
             for (int stId : subtaskIds)
-                if (subTasks.get(stId).getStatus() == Status.DONE)
+                if (subTasks.get(stId).getStatus() == TaskStatus.DONE)
                     doneCounter++;
             if (subtaskIds.size() == doneCounter)
-                epic.setStatus(Status.DONE);
+                epic.setStatus(TaskStatus.DONE);
         } else
             System.out.println("Ошибка: подзадача с ID " + id + " не существует");
     }
 
     @Override
     public Task getTaskById(Integer id) {
-        Task task = tasks.get(id);
+        Optional<Task> opt = Optional.ofNullable(tasks.get(id));
+        Task task = opt.orElseThrow(() -> new NotFoundException("Task with ID " + id + " is not created yet"));
         historyManager.add(task);
         return task;
     }
 
     @Override
     public Epic getEpicById(Integer id) {
-        Epic epic = epics.get(id);
+        Optional<Epic> opt = Optional.ofNullable(epics.get(id));
+        Epic epic = opt.orElseThrow(() -> new NotFoundException("Epic with ID " + id + " is not created yet"));
         historyManager.add(epic);
         return epic;
     }
 
     @Override
     public SubTask getSubTaskById(Integer id) {
-        SubTask subTask = subTasks.get(id);
+        Optional<SubTask> opt = Optional.ofNullable(subTasks.get(id));
+        SubTask subTask = opt.orElseThrow(() -> new NotFoundException("SubTask with ID " + id + " is not created yet"));
         historyManager.add(subTask);
         return subTask;
     }
 
     @Override
-    public void updateTask(Task task) {
-        tasks.put(task.getId(), task);
+    public void updateTask(Task updatedTask) throws ExecutionDateTimeOverlapException {
+        checkTaskExecDateTimeOverlaps(updatedTask);
+        int updatedId = updatedTask.getId();
+        if (tasks.containsKey(updatedId))
+            tasks.put(updatedTask.getId(), updatedTask);
+        else
+            throw new NotFoundException("Task with ID " + updatedId + " is not created yet");
     }
 
     @Override
@@ -213,27 +196,28 @@ public class InMemoryTaskManager implements TaskManager {
                     case DONE -> doneCounter++;
                 }
                 if (!subTaskIds.isEmpty() && subTaskIds.size() == newCounter)
-                    epic.setStatus(Status.NEW);
+                    epic.setStatus(TaskStatus.NEW);
                 else if (!subTaskIds.isEmpty() && subTaskIds.size() == doneCounter)
-                    epic.setStatus(Status.DONE);
+                    epic.setStatus(TaskStatus.DONE);
                 else
-                    epic.setStatus(Status.IN_PROGRESS);
+                    epic.setStatus(TaskStatus.IN_PROGRESS);
             }
             epics.put(updatedId, epic);
             setEpicTimeline(epic);
         } else
-            System.out.println("Ошибка: эпик ещё не создан");
+            throw new NotFoundException("Epic with ID " + updatedId + " is not created yet");
     }
 
     @Override
-    public void updateSubTask(SubTask subTask) {
-        int updatedId = subTask.getId();
+    public void updateSubTask(SubTask updatedSubTask) throws ExecutionDateTimeOverlapException {
+        checkSubTaskExecDateTimeOverlaps(updatedSubTask);
+        int updatedId = updatedSubTask.getId();
         if (subTasks.containsKey(updatedId)) {
-            Epic epic = epics.get(subTask.getEpicId());
-            subTasks.put(updatedId, subTask);
+            Epic epic = epics.get(updatedSubTask.getEpicId());
+            subTasks.put(updatedId, updatedSubTask);
             updateEpic(epic);
         } else
-            System.out.println("Ошибка: подзадача ещё не создана");
+            throw new NotFoundException("SubTask with ID " + updatedId + " is not created yet");
     }
 
     @Override
@@ -267,6 +251,38 @@ public class InMemoryTaskManager implements TaskManager {
             return task1.getEndDateTime().isAfter(task2.getStartDateTime()) && task2.getEndDateTime().isAfter(task1.getStartDateTime());
         } else
             return false;
+    }
+
+    protected void checkTaskExecDateTimeOverlaps(Task taskToCheck) {
+        Optional<Task> overlap = tasks.values().stream()
+                .filter(task -> !task.equals(taskToCheck))
+                .filter(task -> executionDateTimeOverlaps(task, taskToCheck))
+                .findFirst();
+        if (overlap.isPresent())
+            throw new ExecutionDateTimeOverlapException("Задача " + taskToCheck + " пересекается по времени выполнения с задачей "
+                    + overlap.get());
+        Optional<SubTask> subTaskOverlap = subTasks.values().stream()
+                .filter(subTask -> executionDateTimeOverlaps(subTask, taskToCheck))
+                .findFirst();
+        if (subTaskOverlap.isPresent())
+            throw new ExecutionDateTimeOverlapException("Задача " + taskToCheck + " пересекается по времени выполнения с подзадачей "
+                    + subTaskOverlap.get());
+    }
+
+    protected void checkSubTaskExecDateTimeOverlaps(SubTask subTaskToCheck) {
+        Optional<Task> taskOverlap = tasks.values().stream()
+                .filter(task -> executionDateTimeOverlaps(task, subTaskToCheck))
+                .findFirst();
+        if (taskOverlap.isPresent())
+            throw new ExecutionDateTimeOverlapException("Подзадача " + subTaskToCheck + " пересекается по времени выполнения с задачей "
+                    + taskOverlap.get());
+        Optional<SubTask> subTaskOverlap = subTasks.values().stream()
+                .filter(subTask -> !subTask.equals(subTaskToCheck))
+                .filter(subTask -> executionDateTimeOverlaps(subTask, subTaskToCheck))
+                .findFirst();
+        if (subTaskOverlap.isPresent())
+            throw new ExecutionDateTimeOverlapException("Подзадача " + subTaskToCheck + " пересекается по времени выполнения с подзадачей "
+                    + subTaskOverlap.get());
     }
 
     private void setEpicTimeline(Epic epic) {

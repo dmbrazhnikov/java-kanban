@@ -1,10 +1,10 @@
-package ru.yandex.practicum.java.devext.kanban.management;
+package ru.yandex.practicum.java.devext.kanban.unit.management;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.java.devext.kanban.BaseTest;
-import ru.yandex.practicum.java.devext.kanban.Managers;
+import ru.yandex.practicum.java.devext.kanban.unit.BaseUnitTest;
+import ru.yandex.practicum.java.devext.kanban.task.management.Managers;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
@@ -20,7 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 
 @DisplayName("Интеграционные тесты менеджеров задач и истории")
-public class InMemoryTaskManagerIntegrationTest extends BaseTest {
+public class InMemoryTaskManagerIntegrationTest extends BaseUnitTest {
 
     private TaskManager taskManager;
     private LinkedList<Task> refHistory;
