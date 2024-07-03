@@ -1,6 +1,6 @@
 package ru.yandex.practicum.java.devext.kanban.task.management;
 
-import ru.yandex.practicum.java.devext.kanban.unit.history.HistoryManager;
+import ru.yandex.practicum.java.devext.kanban.history.HistoryManager;
 import ru.yandex.practicum.java.devext.kanban.task.Epic;
 import ru.yandex.practicum.java.devext.kanban.task.TaskStatus;
 import ru.yandex.practicum.java.devext.kanban.task.SubTask;

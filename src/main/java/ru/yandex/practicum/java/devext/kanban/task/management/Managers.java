@@ -1,7 +1,7 @@
 package ru.yandex.practicum.java.devext.kanban.task.management;
 
-import ru.yandex.practicum.java.devext.kanban.unit.history.HistoryManager;
-import ru.yandex.practicum.java.devext.kanban.unit.history.InMemoryHistoryManager;
+import ru.yandex.practicum.java.devext.kanban.history.HistoryManager;
+import ru.yandex.practicum.java.devext.kanban.history.InMemoryHistoryManager;
 
 public class Managers {
 

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.java.devext.kanban.unit.history;
+package ru.yandex.practicum.java.devext.kanban.history;
 
 import jdk.jfr.Description;
 import org.junit.jupiter.api.BeforeEach;

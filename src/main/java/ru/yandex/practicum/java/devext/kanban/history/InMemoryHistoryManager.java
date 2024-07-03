@@ -1,4 +1,4 @@
-package ru.yandex.practicum.java.devext.kanban.unit.history;
+package ru.yandex.practicum.java.devext.kanban.history;
 
 import lombok.Getter;
 import ru.yandex.practicum.java.devext.kanban.task.Task;
@@ -81,6 +81,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         Node prev;
         Task data;
         Node next;
+
         Node(Node prev, Task element, Node next) {
             this.data = element;
             this.next = next;

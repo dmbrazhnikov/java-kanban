@@ -1,4 +1,4 @@
-package ru.yandex.practicum.java.devext.kanban.unit.history;
+package ru.yandex.practicum.java.devext.kanban.history;
 
 import ru.yandex.practicum.java.devext.kanban.task.Task;
 import java.util.List;
